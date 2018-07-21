@@ -51,7 +51,11 @@
                             {% if scores[ai][prob] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
-                            ">{{ format_number(scores[ai][prob]) }}</div>
+                            ">
+                {% if prob in scores[ai] %}
+                  {{ format_number(scores[ai][prob]) }}
+                {% endif %}
+                </div>
               {% endfor %}
             </div>
           {% endfor %}

@@ -22,6 +22,7 @@ app.config[
     'SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:root@localhost:{}/icfpc'.format(
     os.environ.get('PSQL_PORT', 5432)
 )
+app.config['TEAM_ID'] = '9364648f7acd496a948fba7c76a10501'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
@@ -58,11 +59,6 @@ def init_db():
 
 
 @app.route("/")
-def hello():
-    return "Score server"
-
-
-@app.route("/scoreboard")
 def _scoreboard():
     problems, ai_names, highest, scores = get_latest_scores()
     return render_template('index.html',
@@ -172,6 +168,7 @@ def get_data(sid):
                      attachment_filename=fname,
                      mimetype='application/octet-stream')
 
+
 @app.route("/submission", methods=['GET'])
 def get_submission():
     result = db.engine.execute('''
@@ -206,7 +203,9 @@ def get_submission():
             with open('/data/{}.nbt'.format(fid), 'rb') as f:
                 zf.writestr(data, f.read())
     memory_file.seek(0)
-    return send_file(memory_file, attachment_filename='submission.zip', as_attachment=True)
+    return send_file(memory_file, attachment_filename='submission.zip',
+                     as_attachment=True)
+
 
 if __name__ == '__main__':
     app.run(
