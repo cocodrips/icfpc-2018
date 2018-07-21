@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
@@ -8,7 +9,20 @@ if (process.argv.length < 4) {
 }
 
 const modelFile = process.argv[2];
+try {
+  fs.statSync(modelFile);
+} catch (e) {
+  console.error('モデルファイルが存在しません');
+  process.exit(1);
+}
+
 const traceFile = process.argv[3];
+try {
+  fs.statSync(traceFile);
+} catch (e) {
+  console.error('トレースファイルが存在しません');
+  process.exit(1);
+}
 
 (async () => {
   const browser = await puppeteer.launch({
@@ -24,6 +38,8 @@ const traceFile = process.argv[3];
 
   await modelInput.uploadFile(modelFile);
   await traceInput.uploadFile(traceFile);
+
+  await page.select('#stepsPerFrame', '1000000');
   await page.click('#execTrace');
   const executionStart = Date.now();
 
@@ -34,8 +50,15 @@ const traceFile = process.argv[3];
       break;
     }
 
+    if (content.startsWith('Failure::')) {
+      console.error(content);
+      await browser.close();
+      process.exit(1);
+    }
+
     // 15分でタイムアウトする
     if (Date.now() - executionStart > 15 * 60 * 1000) {
+      await browser.close();
       process.exit(1);
     }
 
