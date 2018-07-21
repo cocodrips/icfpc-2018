@@ -6,11 +6,14 @@ import numbers
 from flask import Flask, request, abort, send_file, render_template
 from sqlalchemy.sql import text
 from flask_sqlalchemy import SQLAlchemy
+from sys import platform
 
 import locale
 
-locale.setlocale(locale.LC_NUMERIC, 'ja_JP.utf8')
-
+if platform == "linux" or platform == "linux2":
+    locale.setlocale(locale.LC_NUMERIC, 'ja_JP.utf8')
+else:
+    locale.setlocale(locale.LC_NUMERIC, 'ja_JP')
 
 app = Flask(__name__)
 app.config[
