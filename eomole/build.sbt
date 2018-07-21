@@ -6,8 +6,12 @@ lazy val root = project.settings(
 
 lazy val ai = project.in(file("modules/ai")).settings(
   scalaVersion := "2.12.6"
-)
+).dependsOn(interpreter)
 
 lazy val js = project.in(file("modules/js")).enablePlugins(ScalaJSPlugin).settings(
+  scalaVersion := "2.12.6"
+).dependsOn(interpreter)
+
+lazy val interpreter = project.in(file("modules/interpreter")).settings(
   scalaVersion := "2.12.6"
 )
