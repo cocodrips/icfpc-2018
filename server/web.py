@@ -18,7 +18,7 @@ class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     u_name = db.Column(db.String(80))
     ai_name = db.Column(db.String(80))
-    energy = db.Column(db.Integer, default=-10)
+    energy = db.Column(db.BigInteger, default=-10)
     problem = db.Column(db.Integer)
     commands = db.Column(db.Integer, default=-10)
     spent_time = db.Column(db.Integer, default=-10)
@@ -37,6 +37,10 @@ def init_db():
 @app.route("/")
 def hello():
     return "Score server"
+
+
+def get_latest_scores():
+    pass
 
 
 @app.route("/add", methods=['POST'])
@@ -70,7 +74,7 @@ def add_data():
 
     if proc.returncode != 0:
         return errs
-    
+
     output = json.loads(outs.decode('utf-8'))
     score.energy = output['energy']
     score.commands = output['commands']
