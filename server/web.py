@@ -72,8 +72,7 @@ def add_data():
     #     print(e)
     #     return "Failed"
     if proc.returncode != 0:
-        print(outs)
-        return "Failed"
+        return outs
 
     output = json.loads(outs)
     score.energy = output['energy']
