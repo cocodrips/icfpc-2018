@@ -4,10 +4,13 @@
 
 |param|description|
 |:---|:---|
-|uname|人の名前|
-|ainame|AIの名前|
-|score|スコア|
+|user|人の名前|
+|ai|AIの名前|
 |problem|問題番号|
-|nbt|nbtファイル
+|nbt|nbtファイル|
 
-## 
+## install
+
+```sh
+$ pip3 install -r requirements.txt
+```
