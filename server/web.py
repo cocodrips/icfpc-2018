@@ -59,17 +59,18 @@ def add_data():
         problem,
         fpath
     )
+
     proc = subprocess.Popen(cmd.split(' '),
                             cwd="../simulator",
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        proc.wait()
-        outs = proc.stdout.read()
-    except Exception as e:
-        proc.kill()
-        db.session.delete(score)
-        print(e)
-        return "Failed"
+    # try:
+    proc.wait()
+    outs = proc.stdout.read()
+    # except Exception as e:
+    #     proc.kill()
+    #     db.session.delete(score)
+    #     print(e)
+    #     return "Failed"
     if proc.returncode != 0:
         print(outs)
         return "Failed"
