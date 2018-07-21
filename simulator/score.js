@@ -44,7 +44,6 @@ try {
   let content = '';
   while (true) {
     content = await page.$eval('#stdout', item => item.textContent);
-    console.log(content);
     if (content.startsWith('Success::')) {
       break;
     }
