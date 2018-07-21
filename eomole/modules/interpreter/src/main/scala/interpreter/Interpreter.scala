@@ -4,16 +4,23 @@ import scala.collection.BitSet
 
 object Interpreter {
 
-  def execute(state: State): Long = {
-    var s = state
+  def execute(R: Int, trace: Seq[Command]): State = {
+    var s = State(
+      R = R,
+      energy = 0,
+      harmonicsHigh = false,
+      matrix = Model(R, BitSet()),
+      bots = IndexedSeq(Nanobot(0, Pos(0, 0, 0), 2 to 20)),
+      trace = trace.toIndexedSeq
+    )
     var i = 0
     while (!halted(s)) {
-      println(i, s.copy(trace = s.trace.headOption.toIndexedSeq, matrix = s.matrix.copy(bitset = BitSet())))
+//    println(i, s.copy(trace = s.trace.headOption.toIndexedSeq, matrix = s.matrix.copy(bitset = BitSet())))
       s = move(s)
       i += 1
     }
 //    println(i, s.energy)
-    s.energy
+    s
   }
 
   def halted(state: State): Boolean = state.trace.isEmpty
