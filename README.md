@@ -13,7 +13,7 @@ npm i
 
 ```sh
 cd simulator
-node hoge.js ../data/problemsL/LA001_tgt.mdl <nbt path>
+node score.js ../data/problemsL/LA001_tgt.mdl <nbt path>
 ```
 
 ## data download
