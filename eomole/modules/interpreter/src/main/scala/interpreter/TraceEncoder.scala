@@ -12,7 +12,7 @@ object TraceEncoder {
     case Axis.Z => 3
   }
 
-  private def encode(nd: ND): Int = (nd.dx + 1) * 9 + (nd.dy + 1) * 3 * nd.dz + 1
+  private def encode(nd: ND): Int = (nd.dx + 1) * 9 + (nd.dy + 1) * 3 + nd.dz + 1
 
   private def a(lld: LLD): Int = encode(lld.axis)
 

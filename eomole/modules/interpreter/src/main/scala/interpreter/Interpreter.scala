@@ -12,7 +12,7 @@ object Interpreter {
       s = move(s)
       i += 1
     }
-    println(i, s.energy)
+//    println(i, s.energy)
     s.energy
   }
 
@@ -78,7 +78,7 @@ object Interpreter {
           trace = state.trace.updated(pidx, Command.Wait).tail
         ))
       case Command.Fission(nd: ND, m: Int) =>
-        require(bot.seeds.size < m + 1)
+        require(bot.seeds.size >= m + 1)
         botMove(bots.tail, state.copy(
           energy = state.energy + 24,
           trace = state.trace.tail,
