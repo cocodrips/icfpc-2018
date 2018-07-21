@@ -9,6 +9,11 @@
 |problem|問題番号|
 |nbt|nbtファイル|
 
+## DB初期化
+```
+FLASK_APP=web.py flask init_db
+```
+
 ## install
 
 ```sh
