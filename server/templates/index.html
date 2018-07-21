@@ -20,8 +20,8 @@
     <div class="siimple-grid-col siimple-grid-col--12">
       {% for ai in ai_names %}
         <div class="simmple-checkbox">
-          <input type="checkbox" id="checkfor{{ ai }}" checked="checked"/>
-          <label for="checkfor{{ ai }}">{{ ai }}</label>
+          <input type="checkbox" id="{{ ai }}" checked="checked"/>
+          <label for="{{ ai }}">{{ ai }}</label>
         </div>
       {% endfor %}
     </div>
