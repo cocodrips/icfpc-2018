@@ -1,7 +1,5 @@
 package interpreter
 
-//import java.nio.file.{Files, Paths}
-
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 
@@ -43,15 +41,5 @@ object TraceDecoder {
         case _ => throw new UnsupportedOperationException
       }
     }
-
-//  def main(args: Array[String]): Unit = {
-//    (1 to 186).foreach { i =>
-//      val input = Files.readAllBytes(Paths.get("../data/dfltTracesL/LA%03d.nbt".format(i)))
-//      val commands = decode(input)
-//      val output = TraceEncoder.encode(commands)
-//      require(input.seq == output.seq)
-//      println(i)
-//    }
-//  }
 
 }

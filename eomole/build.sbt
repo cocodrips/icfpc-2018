@@ -13,5 +13,6 @@ lazy val js = project.in(file("modules/js")).enablePlugins(ScalaJSPlugin).settin
 ).dependsOn(interpreter)
 
 lazy val interpreter = project.in(file("modules/interpreter")).settings(
-  scalaVersion := "2.12.6"
+  scalaVersion := "2.12.6",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 )
