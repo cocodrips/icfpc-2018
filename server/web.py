@@ -87,6 +87,7 @@ FROM (SELECT
         problem,
         min(create_at) AS create_min
       FROM score
+      WHERE energy > 0 
       GROUP BY u_name,
         ai_name,
         problem) latest
