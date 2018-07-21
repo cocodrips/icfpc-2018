@@ -1,7 +1,9 @@
+import collections
 import os
 import json
 import subprocess
-from flask import Flask, request, abort, send_file
+from flask import Flask, request, abort, send_file, render_template
+from sqlalchemy.sql import text
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -39,8 +41,57 @@ def hello():
     return "Score server"
 
 
+@app.route("/scoreboard")
+def _scoreboard():
+    problems, ai_names, scores = get_latest_scores()
+    return render_template('index.html',
+                           problems=problems,
+                           ai_names=ai_names,
+                           scores=scores)
+
+
 def get_latest_scores():
-    pass
+    '''現在のスコアを取得する'''
+    sql = """
+SELECT
+  s.u_name,
+  s.ai_name,
+  s.energy,
+  s.problem,
+  s.commands,
+  s.spent_time,
+  s.create_at
+FROM (SELECT
+        u_name,
+        ai_name,
+        problem,
+        min(create_at) AS create_min
+      FROM score
+      GROUP BY u_name,
+        ai_name,
+        problem) latest
+  LEFT JOIN score s
+    ON latest.u_name = s.u_name
+       AND latest.ai_name = s.ai_name
+       AND latest.problem = s.problem
+       AND latest.create_min = s.create_at;
+"""
+
+    results = db.engine.execute(text(sql))
+    scores = collections.defaultdict(dict)
+
+    problems = set()
+    ai_names = set()
+
+    for _result in results:
+        ai_name = _result['ai_name']
+        problem = _result['problem']
+        enery = _result['energy']
+        scores[ai_name][problem] = enery
+        ai_names.add(ai_name)
+        problems.add(problem)
+
+    return sorted(list(problems)), ai_names, scores
 
 
 @app.route("/add", methods=['POST'])
