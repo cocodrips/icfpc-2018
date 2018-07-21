@@ -33,6 +33,7 @@
         <div class="siimple-table-header">
           <div class="siimple-table-row">
             <div class="siimple-table-cell"></div>
+            <div class="siimple-table-cell"> best score</div>
             {% for ai in ai_names %}
               <div class="siimple-table-cell"> {{ ai }}</div>
             {% endfor %}
@@ -43,9 +44,14 @@
         <div class="siimple-table-body">
           {% for prob in problems %}
             <div class="siimple-table-row">
+              <div class="siimple-table-cell"> {{ prob }}</div>
+              <div class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
               {% for ai in ai_names %}
-                <div class="siimple-table-cell"> {{ prob }}</div>
-                <div class="siimple-table-cell">{{ scores[ai][prob] }}</div>
+                <div class="siimple-table-cell
+                            {% if scores[ai][prob] == highest[prob] %}
+                            siimple-highest-score
+                            {% endif %}
+                            ">{{ format_number(scores[ai][prob]) }}</div>
               {% endfor %}
             </div>
           {% endfor %}

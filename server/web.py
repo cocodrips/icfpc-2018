@@ -2,9 +2,15 @@ import collections
 import os
 import json
 import subprocess
+import numbers
 from flask import Flask, request, abort, send_file, render_template
 from sqlalchemy.sql import text
 from flask_sqlalchemy import SQLAlchemy
+
+import locale
+
+locale.setlocale(locale.LC_NUMERIC, 'ja_JP')
+
 
 app = Flask(__name__)
 app.config[
@@ -27,6 +33,16 @@ class Score(db.Model):
     create_at = db.Column(db.DateTime, default=db.func.now())
 
 
+@app.context_processor
+def utility_processer():
+    def format_number(amount):
+        if isinstance(amount, numbers.Number):
+            return locale.format('%d', amount, True)
+        return True
+
+    return dict(format_number=format_number)
+
+
 @app.cli.command()
 def init_db():
     """
@@ -43,10 +59,11 @@ def hello():
 
 @app.route("/scoreboard")
 def _scoreboard():
-    problems, ai_names, scores = get_latest_scores()
+    problems, ai_names, highest, scores = get_latest_scores()
     return render_template('index.html',
                            problems=problems,
                            ai_names=ai_names,
+                           highest=highest,
                            scores=scores)
 
 
@@ -82,6 +99,7 @@ FROM (SELECT
 
     problems = set()
     ai_names = set()
+    highest = {}
 
     for _result in results:
         ai_name = _result['ai_name']
@@ -90,8 +108,11 @@ FROM (SELECT
         scores[ai_name][problem] = enery
         ai_names.add(ai_name)
         problems.add(problem)
-
-    return sorted(list(problems)), ai_names, scores
+        if highest.get(problem):
+            highest[problem] = min(enery, highest[problem])
+        else:
+            highest[problem] = enery
+    return sorted(list(problems)), ai_names, highest, scores
 
 
 @app.route("/add", methods=['POST'])
