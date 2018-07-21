@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 import locale
 
-locale.setlocale(locale.LC_NUMERIC, 'ja_JP')
+locale.setlocale(locale.LC_NUMERIC, 'ja_JP.utf8')
 
 
 app = Flask(__name__)
