@@ -38,6 +38,8 @@ try {
 
   await modelInput.uploadFile(modelFile);
   await traceInput.uploadFile(traceFile);
+
+  await page.select('#stepsPerFrame', '1000000');
   await page.click('#execTrace');
   const executionStart = Date.now();
 
