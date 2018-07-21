@@ -1,5 +1,16 @@
 # icfpc-2018
 
+## nbtファイルの送信
+
+```sh
+ai_name=XXXX
+result_path=XXXX
+i=問題番号
+user=自分の名前
+filename=$(printf "%03d" $i)
+curl -X POST http://54.244.193.90:5050/add -F "nbt=@${result_path}/LA$filename.nbt" -F user=${user} -F ai=${ai_name} -F problem=${i}
+```
+
 ## ローカルでスコアチェック
 
 ### セットアップ

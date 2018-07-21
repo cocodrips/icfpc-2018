@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja"></html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"/>
+  <title>Score Board</title>
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="siimple-navbar siimple-navbar--extra-large siimple-navbar--primary">
+  <div class="siimple-navbar-title">udon</div>
+  <div class="siimple--float-right"><a class="siimple-navbar-item" href="/">Score
+    Board</a><a class="siimple-navbar-item" href="/">Simulator</a></div>
+</div>
+<div class="siimple-content siimple-content--extra-large">
+
+  <div class="siimple-grid-row">
+    <div class="siimple-grid-col siimple-grid-col--12">
+      {% for ai in ai_names %}
+        <div class="simmple-checkbox">
+          <input type="checkbox" id="checkfor{{ ai }}" checked="checked"/>
+          <label for="checkfor{{ ai }}">{{ ai }}</label>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="siimple-grid-row">
+    <div class="siimple-grid-col siimple-grid-col--12">
+      <div class="siimple-table siimple-table--striped">
+        <div class="siimple-table-header">
+          <div class="siimple-table-row">
+            <div class="siimple-table-cell"></div>
+            <div class="siimple-table-cell"> best score</div>
+            {% for ai in ai_names %}
+              <div class="siimple-table-cell"> {{ ai }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+
+        <div class="siimple-table-body">
+          {% for prob in problems %}
+            <div class="siimple-table-row">
+              <div class="siimple-table-cell"> {{ prob }}</div>
+              <div class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
+              {% for ai in ai_names %}
+                <div class="siimple-table-cell
+                            {% if scores[ai][prob] == highest[prob] %}
+                            siimple-highest-score
+                            {% endif %}
+                            ">{{ format_number(scores[ai][prob]) }}</div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
