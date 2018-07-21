@@ -68,6 +68,23 @@ def encode(command):
         d = encode_nd(operands[0])
         return bytes([0b00000011 | (d << 3)])
 
+    if opcode.lower() == 'void':
+        assert len(operands) == 1
+        d = encode_nd(operands[0])
+        return bytes([0b00000010 | (d << 3)])
+
+    if opcode.lower() == 'gfill':
+        assert len(operands) == 2
+        nd = encode_nd(operands[0])
+        fd = encode_fd(operands[1])
+        return bytes([0b00000001 | (nd << 3)] + list(fd))
+
+    if opcode.lower() == 'gvoid':
+        assert len(operands) == 2
+        nd = encode_nd(operands[0])
+        fd = encode_fd(operands[1])
+        return bytes([0b00000000 | (nd << 3)] + list(fd))
+
 
 def encode_lld(lld):
     return encode_ld(lld, 15)
@@ -98,6 +115,14 @@ def encode_nd(nd):
     assert (-1 <= dz <= +1)
     return (dx + 1) * 9 + (dy + 1) * 3 + (dz + 1)
     
+
+def encode_fd(fd):
+    dx, dy, dz = parse_tuple(fd)
+    assert (-30 <= dx <= +30)
+    assert (-30 <= dy <= +30)
+    assert (-30 <= dz <= +30)
+    return (dx + 30, dy + 30, dz + 30)
+
 
 def assemble(fp):
     for line in fp:
