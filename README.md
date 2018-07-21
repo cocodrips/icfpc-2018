@@ -3,7 +3,7 @@
 ## data download
 Download problem and default-trace to `data/`.
 ```sh
-$ sh data_downloader.sh
+$ sh deploy_data.sh
 ```
 
  
