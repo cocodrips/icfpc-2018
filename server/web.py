@@ -4,7 +4,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config[
-    'SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:root@localhost:15432/icfpc'
+    'SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:root@localhost:{}/icfpc'.format(
+    os.environ.get('PSQL_PORT', 5432)
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
@@ -48,7 +50,7 @@ def add_data():
     db.session.commit()
 
     f.save('/data/{}.nbt'.format(score.id))
-    return "OK"
+    return str(score.id)
 
 
 @app.route("/data/<sid>", methods=['GET'])
