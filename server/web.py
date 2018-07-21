@@ -194,14 +194,12 @@ def get_submission():
 
     memory_file = io.BytesIO()
     with zipfile.ZipFile(memory_file, 'w') as zf:
-        zf.setpassword('9364648f7acd496a948fba7c76a10501')
         for row in result:
             fid = row['id']
             problem = row['problem']
             data = zipfile.ZipInfo(filename="LA{0:03d}.nbt".format(problem))
             data.compress_type = zipfile.ZIP_DEFLATED
-            with open('/data/{}.nbt'.format(fid), 'rb') as f:
-                zf.writestr(data, f.read())
+            zf.write('/data/{}.nbt'.format(fid), '{}.nbt'.format(fid))
     memory_file.seek(0)
     return send_file(memory_file, attachment_filename='submission.zip',
                      as_attachment=True)
