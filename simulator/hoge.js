@@ -34,8 +34,15 @@ const traceFile = process.argv[3];
       break;
     }
 
+    if (content.startsWith('Failure::')) {
+      console.error(content);
+      await browser.close();
+      process.exit(1);
+    }
+
     // 15分でタイムアウトする
     if (Date.now() - executionStart > 15 * 60 * 1000) {
+      await browser.close();
       process.exit(1);
     }
 
