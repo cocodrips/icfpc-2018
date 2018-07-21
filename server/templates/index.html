@@ -15,31 +15,32 @@
     Board</a><a class="siimple-navbar-item" href="/">Simulator</a></div>
 </div>
 <div class="siimple-content siimple-content--extra-large">
+
+  <div class="siimple-grid-row">
+    <div class="siimple-grid-col siimple-grid-col--12">
+      {% for ai in ai_names %}
+      <div class="simmple-checkbox">
+        <input type="checkbox" id="checkfor{{ ai }}" checked="checked"/>
+        <label for="checkfor{{ ai }}">{{ ai }}</label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
       <div class="siimple-table siimple-table--striped">
         <div class="siimple-table-header">
-          <div class="siimple-grid-row">
-            <div class="siimple-grid-col siimple-grid-col--12">
-              {% for ai in ai_names %}
-              <div class="simmple-checkbox">
-                <input type="checkbox" id="checkfor{{ ai }}" checked="checked"/>
-                <label for="checkfor{{ ai }}">{{ ai }}</label>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
           <div class="siimple-table-row">
             <div class="siimple-table-cell"></div>
-
             {% for ai in ai_names %}
               <div class="siimple-table-cell"> {{ ai }}</div>
             {% endfor %}
           </div>
         </div>
-
       </div>
     </div>
   </div>
+  
 </div>
 </body>
