@@ -28,6 +28,20 @@
           </div>
         </div>
 
+
+        <div class="siimple-table-body">
+          {% for prob in problems %}
+            <div class="siimple-table-row">
+            {% for ai in ai_names %}
+              <div class="siimple-table-cell"> {{ prob }}</div>
+              <div class="siimple-table-cell">{{ scores[ai][prob] }}</div>
+            {% endfor %}
+            </div>
+          {% endfor %}
+          
+        </div>
+
+
       </div>
     </div>
   </div>
