@@ -97,5 +97,5 @@ if __name__ == '__main__':
         host=os.environ.get('FLASK_HOST', '0.0.0.0'),
         port=int(os.environ.get('FLASK_PORT', 5050)),
         debug=bool(os.environ.get('FLASK_DEBUG', 1)),
-        processes=10,
+        # processes=10,
     )
