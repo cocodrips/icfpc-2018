@@ -1,0 +1,3 @@
+[submodule "icfpcontest2018.github.io"]
+	path = icfpcontest2018.github.io
+	url = git@github.com:icfpcontest2018/icfpcontest2018.github.io.git
