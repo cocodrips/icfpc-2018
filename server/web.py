@@ -1,4 +1,6 @@
 import os
+import json
+import subprocess
 from flask import Flask, request, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 
@@ -16,8 +18,10 @@ class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     u_name = db.Column(db.String(80))
     ai_name = db.Column(db.String(80))
-    score = db.Column(db.Integer, default=-10)
+    energy = db.Column(db.Integer, default=-10)
     problem = db.Column(db.Integer)
+    commands = db.Column(db.Integer, default=-10)
+    spent_time = db.Column(db.Integer, default=-10)
     create_at = db.Column(db.DateTime, default=db.func.now())
 
 
@@ -41,7 +45,7 @@ def add_data():
     f = request.files.get('nbt')
     u_name = request.form.get('user')
     ai_name = request.form.get('ai')
-    problem = request.form.get('problem')
+    problem = int(request.form.get('problem'))
     if not u_name or not ai_name or not problem:
         abort(500)
 
@@ -49,7 +53,30 @@ def add_data():
     db.session.add(score)
     db.session.commit()
 
-    f.save('/data/{}.nbt'.format(score.id))
+    fpath = '/data/{}.nbt'.format(score.id)
+    f.save(fpath)
+    cmd = "/usr/local/bin/node score.js ../data/problemsL/LA{0:03d}_tgt.mdl {1}".format(
+        problem,
+        fpath
+    )
+    proc = subprocess.Popen(cmd.split(' '),
+                            cwd="../simulator",
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        proc.wait()
+        outs = proc.stdout.read()
+    except Exception:
+        proc.kill()
+        db.session.delete(score)
+        return "Failed"
+    if proc.returncode != 0:
+        return "Failed"
+
+    output = json.loads(outs)
+    score.energy = output['energy']
+    score.commands = output['commands']
+    score.spent_time = output['time']
+    db.session.commit()
     return str(score.id)
 
 
@@ -70,5 +97,5 @@ if __name__ == '__main__':
         host=os.environ.get('FLASK_HOST', '0.0.0.0'),
         port=int(os.environ.get('FLASK_PORT', 5050)),
         debug=bool(os.environ.get('FLASK_DEBUG', 1)),
-        # processes=10,
+        processes=10,
     )
