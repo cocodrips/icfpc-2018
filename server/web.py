@@ -65,11 +65,13 @@ def add_data():
     try:
         proc.wait()
         outs = proc.stdout.read()
-    except Exception:
+    except Exception as e:
         proc.kill()
         db.session.delete(score)
+        print(e)
         return "Failed"
     if proc.returncode != 0:
+        print(outs)
         return "Failed"
 
     output = json.loads(outs)
