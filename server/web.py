@@ -1,10 +1,12 @@
 import collections
 import os
+import io
 import json
 import subprocess
 import numbers
 from flask import Flask, request, abort, send_file, render_template
 from sqlalchemy.sql import text
+import zipfile
 from flask_sqlalchemy import SQLAlchemy
 from sys import platform
 
@@ -135,7 +137,7 @@ def add_data():
 
     fpath = '/data/{}.nbt'.format(score.id)
     f.save(fpath)
-    cmd = "/usr/local/bin/node score.js ../data/problemsL/LA{0:03d}_tgt.mdl {1}".format(
+    cmd = "/usr/bin/node score.js ../data/problemsL/LA{0:03d}_tgt.mdl {1}".format(
         problem,
         fpath
     )
@@ -170,6 +172,41 @@ def get_data(sid):
                      attachment_filename=fname,
                      mimetype='application/octet-stream')
 
+@app.route("/submission", methods=['GET'])
+def get_submission():
+    result = db.engine.execute('''
+        SELECT
+          s.id,
+          s.problem
+        FROM (SELECT
+                u_name,
+                ai_name,
+                problem,
+                min(energy) AS score_min
+              FROM score
+              WHERE energy > 0
+              GROUP BY u_name,
+                ai_name,
+                problem) latest
+          LEFT JOIN score s
+            ON latest.u_name = s.u_name
+               AND latest.ai_name = s.ai_name
+               AND latest.problem = s.problem
+               AND latest.score_min = s.energy;
+        ''')
+
+    memory_file = io.BytesIO()
+    with zipfile.ZipFile(memory_file, 'w') as zf:
+        zf.setpassword('9364648f7acd496a948fba7c76a10501')
+        for row in result:
+            fid = row['id']
+            problem = row['problem']
+            data = zipfile.ZipInfo(filename="LA{0:03d}.nbt".format(problem))
+            data.compress_type = zipfile.ZIP_DEFLATED
+            with open('/data/{}.nbt'.format(fid), 'rb') as f:
+                zf.writestr(data, f.read())
+    memory_file.seek(0)
+    return send_file(memory_file, attachment_filename='submission.zip', as_attachment=True)
 
 if __name__ == '__main__':
     app.run(
