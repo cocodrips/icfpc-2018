@@ -66,13 +66,14 @@ def add_data():
     # try:
     proc.wait()
     outs = proc.stdout.read()
+    errs = proc.stderr.read()
     # except Exception as e:
     #     proc.kill()
     #     db.session.delete(score)
     #     print(e)
     #     return "Failed"
     if proc.returncode != 0:
-        return outs
+        return errs
 
     output = json.loads(outs)
     score.energy = output['energy']
