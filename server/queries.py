@@ -67,3 +67,10 @@ FROM (SELECT
        AND latest.problem = s.problem
        AND latest.create_min = s.create_at;
 """
+
+query_board_score = """SELECT
+  problem,
+  energy
+from board_score
+where game_type like '{game_type}'
+"""

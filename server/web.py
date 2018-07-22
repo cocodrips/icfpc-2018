@@ -42,13 +42,20 @@ class Score(db.Model):
     game_type = db.Column(db.String(10), default='LA')
 
 
+class LeaderBoardScore(db.Model):
+    __tablename__ = 'board_score'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    energy = db.Column(db.BigInteger, default=-10)
+    problem = db.Column(db.Integer)
+    game_type = db.Column(db.String(10), default='LA')
+
+
 @app.context_processor
 def utility_processer():
     def format_number(amount):
         if isinstance(amount, numbers.Number):
             return locale.format('%d', amount, True)
         return True
-
     return dict(format_number=format_number)
 
 
@@ -61,18 +68,46 @@ def init_db():
     db.create_all()
 
 
+@app.cli.command()
+def update_leader_board():
+    """
+    db insert test
+    """
+    import pandas as pd
+    import pathlib
+    data_path = pathlib.Path('../icfpcontest2018.github.io/_data/')
+    full_df = pd.read_csv(data_path / 'full_standings_live.csv')
+    la_df = pd.read_csv(data_path / 'lgtn_standings_live.csv')
+    for game_type in ['FA', 'LA', 'FD', 'FR']:
+        df = full_df
+        if game_type.startswith('L'):
+            df = la_df
+        gtype = df[df.probNum.str.startswith(game_type)]
+        best_energies = gtype.groupby('probNum').min()['energy']
+        for problem, energy in best_energies.items():
+            print(problem, energy)
+            score = LeaderBoardScore(problem=int(problem[2:]),
+                                     game_type=game_type,
+                                     energy=energy)
+            db.session.add(score)
+    db.session.commit()
+
+
 @app.route("/")
 def _index():
     return _scoreboard('LA')
 
+
 @app.route("/scoreboard/<_type>")
 def _scoreboard(_type):
-    problems, ai_names, highest, scores, sum_scores = get_latest_scores(_type)
+    (problems, ai_names, highest, 
+     scores, board_scores, sum_scores) = get_latest_scores(_type)
     return render_template('index.html',
                            problems=problems,
                            ai_names=ai_names,
                            highest=highest,
                            scores=scores,
+                           board_scores=board_scores,
                            sum_scores=sum_scores)
 
 
@@ -106,6 +141,12 @@ def get_latest_scores(_type):
     ai_names = [a for t, a in
                 sorted([(time, ai) for ai, time in ai_names.items()],
                        reverse=True)]
+    
+    sql = queries.query_board_score.format(game_type=_type)
+    results = db.engine.execute(text(sql))
+    board_scores = {}
+    for result in results:
+        board_scores[result['problem']] = result['energy']
 
     sql = queries.query_sum_score
     results = db.engine.execute(text(sql))
@@ -113,7 +154,8 @@ def get_latest_scores(_type):
     for result in results:
         sum_scores[result['u_name']].append(
             (result['time_at'], result['ai_name'], result['score']))
-    return sorted(list(problems)), ai_names, highest, scores, sum_scores
+    return (sorted(list(problems)), ai_names, highest,
+            scores, board_scores, sum_scores)
 
 
 @app.route("/add", methods=['POST'])
@@ -123,11 +165,11 @@ def add_data():
     u_name = request.form.get('user')
     ai_name = request.form.get('ai')
     problem = int(request.form.get('problem'))
-    game_type = request.form.get('type')
+    game_type = request.form.get('type', 'LA')
     if not u_name or not ai_name or not problem:
         abort(500)
 
-    score = Score(u_name=u_name, ai_name=ai_name, 
+    score = Score(u_name=u_name, ai_name=ai_name,
                   problem=problem, game_type=game_type)
     db.session.add(score)
     db.session.commit()
