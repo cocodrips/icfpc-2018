@@ -56,6 +56,7 @@ def utility_processer():
         if isinstance(amount, numbers.Number):
             return locale.format('%d', amount, True)
         return True
+
     return dict(format_number=format_number)
 
 
@@ -75,6 +76,10 @@ def update_leader_board():
     """
     import pandas as pd
     import pathlib
+
+    db.engine.execute(text('''TRUNCATE TABLE board_score'''))
+    db.session.commit()
+
     data_path = pathlib.Path('../icfpcontest2018.github.io/_data/')
     full_df = pd.read_csv(data_path / 'full_standings_live.csv')
     la_df = pd.read_csv(data_path / 'lgtn_standings_live.csv')
@@ -83,10 +88,8 @@ def update_leader_board():
         if game_type.startswith('L'):
             df = la_df
         gtype = df[df.probNum.str.startswith(game_type)]
-        best_energies = gtype.groupby('probNum').min()['energy']
-        for problem, energy in best_energies.items():
-            print(problem, energy)
-            score = LeaderBoardScore(problem=int(problem[2:]),
+        for _, (energy, probNum, score) in gtype[['energy', 'probNum', 'score']].iterrows():
+            score = LeaderBoardScore(problem=int(probNum[2:]),
                                      game_type=game_type,
                                      energy=energy)
             db.session.add(score)
@@ -100,7 +103,7 @@ def _index():
 
 @app.route("/scoreboard/<_type>")
 def _scoreboard(_type):
-    (problems, ai_names, highest, 
+    (problems, ai_names, highest,
      scores, board_scores, sum_scores) = get_latest_scores(_type)
     return render_template('index.html',
                            problems=problems,
@@ -141,14 +144,16 @@ def get_latest_scores(_type):
     ai_names = [a for t, a in
                 sorted([(time, ai) for ai, time in ai_names.items()],
                        reverse=True)]
-    
+
     sql = queries.query_board_score.format(game_type=_type)
     results = db.engine.execute(text(sql))
+    # board_scores = collections.defaultdict(dict)
     board_scores = {}
     for result in results:
+        # board_scores[result['problem']][result['rank']] = result['energy']
         board_scores[result['problem']] = result['energy']
 
-    sql = queries.query_sum_score
+    sql = queries.query_sum_score.format(game_type=_type)
     results = db.engine.execute(text(sql))
     sum_scores = collections.defaultdict(list)
     for result in results:
