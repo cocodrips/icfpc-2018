@@ -14,5 +14,10 @@ namespace Yuizumi.Icfpc2018
 
         internal abstract IEnumerable<Coord> GetVolatile(Nanobot bot);
         internal abstract void ApplyToState(State state, Nanobot bot);
+
+        protected void Verify(bool condition, string message)
+        {
+            if (!condition) throw new InvalidCommandException(this, message);
+        }
     }
 }

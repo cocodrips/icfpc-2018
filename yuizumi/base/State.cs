@@ -30,6 +30,18 @@ namespace Yuizumi.Icfpc2018
         public IReadOnlyList<Nanobot> Bots
             => mBots.AsReadOnly();
 
+        internal void InsertBot(Nanobot bot)
+        {
+            int index = mBots.Count;
+            for (; index > 0 && mBots[index].Bid > bot.Bid; index--) {}
+            mBots.Insert(index, bot);
+        }
+
+        internal void RemoveBot(Nanobot bot)
+        {
+            mBots.Remove(bot);
+        }
+
         public void DoTurn(IReadOnlyList<Command> commands)
         {
             Requires.State(mBots.Count > 0, "System has been halted.");
