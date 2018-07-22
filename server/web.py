@@ -12,6 +12,7 @@ import tempfile
 import shutil
 import locale
 import queries
+import datetime
 
 if platform == "linux" or platform == "linux2":
     locale.setlocale(locale.LC_NUMERIC, 'ja_JP.utf8')
@@ -38,6 +39,7 @@ class Score(db.Model):
     commands = db.Column(db.Integer, default=-10)
     spent_time = db.Column(db.Integer, default=-10)
     create_at = db.Column(db.DateTime, default=db.func.now())
+    game_type = db.Column(db.String(10), default='LA')
 
 
 @app.context_processor
@@ -77,26 +79,36 @@ def get_latest_scores():
     scores = collections.defaultdict(dict)
 
     problems = set()
-    ai_names = set()
+    ai_names = {}
     highest = {}
 
     for _result in results:
         ai_name = _result['ai_name']
         problem = _result['problem']
         enery = _result['energy']
-        scores[ai_name][problem] = enery
-        ai_names.add(ai_name)
+        create_at = _result['create_at']
+        scores[ai_name][problem] = {
+            'energy': _result['energy'],
+            'create_at': _result['create_at'],
+        }
+
+        ai_names.setdefault(ai_name, datetime.datetime.now())
+        ai_names[ai_name] = min(ai_names[ai_name], create_at)
         problems.add(problem)
         if highest.get(problem):
             highest[problem] = min(enery, highest[problem])
         else:
             highest[problem] = enery
+    ai_names = [a for t, a in
+                sorted([(time, ai) for ai, time in ai_names.items()],
+                       reverse=True)]
 
     sql = queries.query_sum_score
     results = db.engine.execute(text(sql))
     sum_scores = collections.defaultdict(list)
     for result in results:
-        sum_scores[result['u_name']].append((result['time_at'], result['ai_name'], result['score']))
+        sum_scores[result['u_name']].append(
+            (result['time_at'], result['ai_name'], result['score']))
     return sorted(list(problems)), ai_names, highest, scores, sum_scores
 
 
