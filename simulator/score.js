@@ -25,10 +25,10 @@ try {
   process.exit(1);
 }
 
-const problemType = problemName.substr(0, 2);
-const problemNum = problemName.substr(2);
+const run = async (problemName, traceFile) => {
+  const problemType = problemName.substr(0, 2);
+  const problemNum = problemName.substr(2);
 
-(async () => {
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-web-security', '--disable-setuid-sandbox']
@@ -39,21 +39,21 @@ const problemNum = problemName.substr(2);
 
   if (['LA', 'FA'].includes(problemType)) {
     const modelInput = await page.$('#tgtModelFileIn');
-    const modelFile = `/data/${problemName}_tgt.mdl`;
+    const modelFile = `../data/problems/${problemName}_tgt.mdl`;
     await modelInput.uploadFile(modelFile);
     await page.click('#srcModelEmpty');
   } else if (problemType === 'FD') {
     const modelInput = await page.$('#srcModelFileIn');
-    const modelFile = `/data/${problemName}_src.mdl`;
+    const modelFile = `../data/problems/${problemName}_src.mdl`;
     await modelInput.uploadFile(modelFile);
     await page.click('#tgtModelEmpty');
   } else {
     // FR
     const targetInput = await page.$('#tgtModelFileIn');
-    const targetFile = `/data/${problemName}_tgt.mdl`;
+    const targetFile = `../data/problems/${problemName}_tgt.mdl`;
     await targetInput.uploadFile(targetFile);
     const sourceInput = await page.$('#srcModelFileIn');
-    const sourceFile = `/data/${problemName}_src.mdl`;
+    const sourceFile = `../data/problems/${problemName}_src.mdl`;
     await sourceFile.uploadFile(sourceFile);
   }
 
@@ -94,4 +94,8 @@ const problemNum = problemName.substr(2);
   );
 
   await browser.close();
-})();
+};
+
+run(problemName, traceFile);
+
+exports.run = run;
