@@ -77,23 +77,30 @@ def update_leader_board():
     import pandas as pd
     import pathlib
 
-    db.engine.execute(text('''TRUNCATE TABLE board_score'''))
-    db.session.commit()
+    # db.engine.execute(text('''TRUNCATE TABLE board_score'''))
+    # db.session.commit()
 
     data_path = pathlib.Path('../icfpcontest2018.github.io/_data/')
     full_df = pd.read_csv(data_path / 'full_standings_live.csv')
     la_df = pd.read_csv(data_path / 'lgtn_standings_live.csv')
+    _i = 0
     for game_type in ['FA', 'LA', 'FD', 'FR']:
         df = full_df
         if game_type.startswith('L'):
             df = la_df
         gtype = df[df.probNum.str.startswith(game_type)]
-        for _, (energy, probNum, score) in gtype[['energy', 'probNum', 'score']].iterrows():
+        for _, (energy, probNum) in gtype.groupby('probNum').head(10)[
+            ['energy', 'probNum']].iterrows():
             score = LeaderBoardScore(problem=int(probNum[2:]),
                                      game_type=game_type,
                                      energy=energy)
+
             db.session.add(score)
-    db.session.commit()
+            if _i != int(probNum[2:]):
+                print(probNum, )
+                db.session.commit()
+                _i = int(probNum[2:])
+        db.session.commit()
 
 
 @app.route("/")
@@ -147,11 +154,10 @@ def get_latest_scores(_type):
 
     sql = queries.query_board_score.format(game_type=_type)
     results = db.engine.execute(text(sql))
-    # board_scores = collections.defaultdict(dict)
-    board_scores = {}
+    board_scores = collections.defaultdict(dict)
+
     for result in results:
-        # board_scores[result['problem']][result['rank']] = result['energy']
-        board_scores[result['problem']] = result['energy']
+        board_scores[result['problem']][result['rank']] = result['energy']
 
     sql = queries.query_sum_score.format(game_type=_type)
     results = db.engine.execute(text(sql))
@@ -203,7 +209,6 @@ def add_data():
     score.spent_time = output['time']
     db.session.commit()
     return str(score.id)
-
 
 @app.route("/data/<sid>", methods=['GET'])
 def get_data(sid):

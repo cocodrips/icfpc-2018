@@ -34,12 +34,23 @@ FROM (
                 WHERE game_type LIKE '{game_type}'
                ) AS t1
           WHERE energy > 0
-                AND (problem <= 5 OR problem = 10 OR problem = 20)
+                AND problem IN (SELECT
+                                  DISTINCT problem
+                                FROM board_score
+                                WHERE
+                                  t1.problem < 35
+                                  AND game_type LIKE '{game_type}')
                 AND rank = 1
 
           GROUP BY ai_name, u_name) AS t2
      ) AS t3
-WHERE cnt = 7
+WHERE cnt = (SELECT count(1)
+             FROM (SELECT
+                     DISTINCT problem
+                   FROM board_score
+                   WHERE
+                     problem < 35
+                     AND game_type LIKE '{game_type}') t)
 """
 
 query_latest_scores ="""
@@ -68,9 +79,18 @@ FROM (SELECT
        AND latest.create_min = s.create_at;
 """
 
-query_board_score = """SELECT
-  problem,
-  energy
-from board_score
-where game_type like '{game_type}'
+query_board_score = """
+SELECT *
+FROM
+  (SELECT
+     problem,
+     energy,
+     rank()
+     OVER (
+       PARTITION BY (problem)
+       ORDER BY
+         energy ASC ) AS rank
+   FROM board_score
+   WHERE game_type LIKE '{game_type}') t1
+WHERE rank = 1 OR rank = 10;
 """
