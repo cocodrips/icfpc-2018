@@ -58,6 +58,30 @@ def decode(fp):
         d = (x1 & 0b11111000) >> 3
         return 'Fill {}'.format(decode_nd(d))
 
+    if (x1 & 0b00000111) == 0b00000010:
+        d = (x1 & 0b11111000) >> 3
+        return 'Void {}'.format(decode_nd(d))
+
+    if (x1 & 0b00000111) == 0b00000001:
+        d = (x1 & 0b11111000) >> 3
+        dx = read_byte(fp)
+        assert dx is not None
+        dy = read_byte(fp)
+        assert dy is not None
+        dz = read_byte(fp)
+        assert dz is not None
+        return 'GFill {} {}'.format(decode_nd(d), decode_fd(dx, dy, dz))
+
+    if (x1 & 0b00000111) == 0b00000000:
+        d = (x1 & 0b11111000) >> 3
+        dx = read_byte(fp)
+        assert dx is not None
+        dy = read_byte(fp)
+        assert dy is not None
+        dz = read_byte(fp)
+        assert dz is not None
+        return 'GVoid {} {}'.format(decode_nd(d), decode_fd(dx, dy, dz))
+
 
 def decode_lld(a, i):
     return decode_ld(a, i, 15)
@@ -82,6 +106,14 @@ def decode_nd(nd):
     dx = (nd // 9) % 3 - 1
     dy = (nd // 3) % 3 - 1
     dz = (nd // 1) % 3 - 1
+    return '<{},{},{}>'.format(dx, dy, dz)
+
+
+def decode_fd(dx, dy, dz):
+    assert (0 <= dx <= 60)
+    assert (0 <= dy <= 60)
+    assert (0 <= dz <= 60)
+    dx -= 30; dy -= 30; dz -= 30
     return '<{},{},{}>'.format(dx, dy, dz)
 
 
