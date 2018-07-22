@@ -60,12 +60,12 @@
                   class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
               {% for ai in ai_names %}
                 <div class="siimple-table-cell
-                            {% if scores[ai][prob] == highest[prob] %}
+                            {% if scores[ai][prob] and scores[ai][prob]['energy'] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
                             ">
                   {% if prob in scores[ai] %}
-                    {{ format_number(scores[ai][prob]) }}
+                    {{ format_number(scores[ai][prob]['energy']) }}
                   {% endif %}
                 </div>
               {% endfor %}

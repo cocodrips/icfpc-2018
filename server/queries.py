@@ -53,7 +53,7 @@ FROM (SELECT
         u_name,
         ai_name,
         problem,
-        min(create_at) AS create_min
+        max(create_at) AS create_min
       FROM score
       WHERE energy > 0 
       GROUP BY u_name,
