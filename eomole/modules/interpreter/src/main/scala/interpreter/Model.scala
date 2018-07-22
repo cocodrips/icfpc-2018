@@ -1,7 +1,10 @@
 package interpreter
 
+import monocle.macros.Lenses
+
 import scala.collection.BitSet
 
+@Lenses
 case class Model(R: Int, bitset: BitSet) {
   def get(pos: Pos): Boolean = bitset(pos.x * R * R + pos.y * R + pos.z)
 

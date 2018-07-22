@@ -20,5 +20,11 @@ lazy val js = project.in(file("modules/js")).enablePlugins(ScalaJSPlugin).settin
 
 lazy val interpreter = project.in(file("modules/interpreter")).settings(
   scalaVersion := "2.12.6",
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  libraryDependencies ++= ((monocleVersion: String) => Seq(
+    "com.github.julien-truffaut" %% "monocle-core" % monocleVersion,
+    "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
+    "com.github.julien-truffaut" %% "monocle-law" % monocleVersion % "test"
+  )) ("1.5.0"),
+  addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full)
 )
