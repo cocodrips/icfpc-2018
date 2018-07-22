@@ -14,6 +14,8 @@
   <div class="siimple--float-right"><a class="siimple-navbar-item" href="/">Score
     Board</a><a class="siimple-navbar-item" href="/submission">提出</a></div>
 </div>
+
+{#{{ sum_scores }}#}
 <div class="siimple-content siimple-content--extra-large">
 
   <div class="siimple-grid-row">
@@ -22,13 +24,15 @@
         <div class="siimple--float-left">
           {% for ai in ai_names %}
             <div class="simmple-checkbox">
-              <input type="checkbox" name="ai" id="{{ ai }}" value="{{ ai }}" checked="checked"/>
+              <input type="checkbox" name="ai" id="{{ ai }}" value="{{ ai }}"
+                     checked="checked"/>
               <label for="{{ ai }}">{{ ai }}</label>
             </div>
           {% endfor %}
         </div>
         <div class="siimple--float-right">
-          <input class="siimple-btn siimple-btn--error" type="submit" value="Submit"/>
+          <input class="siimple-btn siimple-btn--error" type="submit"
+                 value="Submit"/>
         </div>
       </form>
     </div>
@@ -52,16 +56,17 @@
           {% for prob in problems %}
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
-              <div class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
+              <div
+                  class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
               {% for ai in ai_names %}
                 <div class="siimple-table-cell
                             {% if scores[ai][prob] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
                             ">
-                {% if prob in scores[ai] %}
-                  {{ format_number(scores[ai][prob]) }}
-                {% endif %}
+                  {% if prob in scores[ai] %}
+                    {{ format_number(scores[ai][prob]) }}
+                  {% endif %}
                 </div>
               {% endfor %}
             </div>

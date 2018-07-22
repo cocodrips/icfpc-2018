@@ -10,8 +10,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sys import platform
 import tempfile
 import shutil
-
 import locale
+import queries
 
 if platform == "linux" or platform == "linux2":
     locale.setlocale(locale.LC_NUMERIC, 'ja_JP.utf8')
@@ -61,42 +61,18 @@ def init_db():
 
 @app.route("/")
 def _scoreboard():
-    problems, ai_names, highest, scores = get_latest_scores()
+    problems, ai_names, highest, scores, sum_scores = get_latest_scores()
     return render_template('index.html',
                            problems=problems,
                            ai_names=ai_names,
                            highest=highest,
-                           scores=scores)
+                           scores=scores,
+                           sum_scores=sum_scores)
 
 
 def get_latest_scores():
     '''現在のスコアを取得する'''
-    sql = """
-SELECT
-  s.u_name,
-  s.ai_name,
-  s.energy,
-  s.problem,
-  s.commands,
-  s.spent_time,
-  s.create_at
-FROM (SELECT
-        u_name,
-        ai_name,
-        problem,
-        min(create_at) AS create_min
-      FROM score
-      WHERE energy > 0 
-      GROUP BY u_name,
-        ai_name,
-        problem) latest
-  LEFT JOIN score s
-    ON latest.u_name = s.u_name
-       AND latest.ai_name = s.ai_name
-       AND latest.problem = s.problem
-       AND latest.create_min = s.create_at;
-"""
-
+    sql = queries.query_latest_scores
     results = db.engine.execute(text(sql))
     scores = collections.defaultdict(dict)
 
@@ -115,7 +91,13 @@ FROM (SELECT
             highest[problem] = min(enery, highest[problem])
         else:
             highest[problem] = enery
-    return sorted(list(problems)), ai_names, highest, scores
+
+    sql = queries.query_sum_score
+    results = db.engine.execute(text(sql))
+    sum_scores = collections.defaultdict(list)
+    for result in results:
+        sum_scores[result['u_name']].append((result['time_at'], result['ai_name'], result['score']))
+    return sorted(list(problems)), ai_names, highest, scores, sum_scores
 
 
 @app.route("/add", methods=['POST'])
@@ -197,10 +179,14 @@ def get_submission():
         for row in result:
             fid = row['id']
             problem = row['problem']
-            shutil.copyfile('/data/{}.nbt'.format(fid), '{0}/LA{1:03d}.nbt'.format(temp_dir, problem))
+            shutil.copyfile('/data/{}.nbt'.format(fid),
+                            '{0}/LA{1:03d}.nbt'.format(temp_dir, problem))
         zip_filename = '{}/submission.zip'.format(temp_dir)
-        subprocess.call('zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(zip_filename), shell=True, cwd=temp_dir);
-        return send_file(zip_filename, attachment_filename='submission.zip', as_attachment=True)
+        subprocess.call(
+            'zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(
+                zip_filename), shell=True, cwd=temp_dir);
+        return send_file(zip_filename, attachment_filename='submission.zip',
+                         as_attachment=True)
 
 
 if __name__ == '__main__':
