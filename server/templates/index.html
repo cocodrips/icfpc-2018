@@ -21,7 +21,18 @@
     <a class="siimple-navbar-item" href="/submission">ベストスコアのDL</a></div>
 </div>
 
-{#{{ sum_scores }}#}
+{# {{ sum_scores }} #}
+
+{% for owner in sum_scores %}
+  <p><strong>OWNER:</strong> {{ owner }}</p>
+  {% for data in sum_scores[owner] %}
+    {% for i in data %}
+      <p>{{ i }}</p>
+    {% endfor %}
+  {% endfor %}
+{% endfor %}
+
+
 <div class="siimple-content siimple-content--extra-large">
 
 {#  <div class="siimple-grid-row">#}
