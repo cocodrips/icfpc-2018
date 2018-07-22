@@ -5,7 +5,8 @@ lazy val root = project.settings(
 ).aggregate(ai, js, bin)
 
 lazy val ai = project.in(file("modules/ai")).settings(
-  scalaVersion := "2.12.6"
+  scalaVersion := "2.12.6",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 ).dependsOn(interpreter)
 
 lazy val bin = project.in(file("modules/bin")).enablePlugins(JavaAppPackaging, UniversalPlugin).settings(

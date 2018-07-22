@@ -24,4 +24,6 @@ object Model {
       }
       new Model(head & 255, bitset.result())
   }
+
+  def empty(R: Int): Model = Model(R, BitSet())
 }
