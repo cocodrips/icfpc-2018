@@ -1,5 +1,7 @@
 package interpreter
 
+import scala.collection.BitSet
+
 object Interpreter {
 
   def execute(model: Model, trace: Seq[Command]): State = {
@@ -13,101 +15,121 @@ object Interpreter {
     )
     var i = 0
     while (!halted(s)) {
-//    println(i, s.copy(trace = s.trace.headOption.toIndexedSeq, matrix = s.matrix.copy(bitset = BitSet())))
+      sys.process.stderr.println((i, s.copy(trace = s.trace.headOption.toIndexedSeq, matrix = s.matrix.copy(bitset = BitSet()))).toString)
       s = move(s)
       i += 1
     }
-//    println(i, s.energy)
+    println(i, s.energy)
     s
   }
 
   def halted(state: State): Boolean = state.trace.isEmpty
 
-  def move(state: State): State = {
-    // TODO: 順不同なので単体コマンドとグループコマンドを分けて動かして合成する
-    val moved = botMove(state.bots.zipWithIndex, state.copy(
-      energy = state.energy +
-        state.bots.size * 20 +
-        state.matrix.R * state.matrix.R * state.matrix.R * (if (state.harmonicsHigh) 30 else 3)
-    ))
-    moved.copy(bots = moved.bots.filterNot(_.removed).sorted)
+  def move(previous: State): State = {
+    val n = previous.bots.size
+    val commands = (previous.bots, previous.trace.take(n)).zipped.toIndexedSeq.zipWithIndex
+    val singletons: State => State = commands.collect({
+      case ((bot, command: SingletonCommand), idx) => singletonCommand(idx, bot, command)
+    }).reduceOption(_ andThen _).getOrElse(identity[State])
+    val fusions = commands.collect {
+      case t@((_, command: FusionCommand), _) => t
+    }
+    val gfills = commands.collect {
+      case t@((_, command: FusionCommand), _) => t
+    }
+    //    val
+    // TODO: fusion, gfills, gvoids
+    (turnStart andThen singletons andThen turnEnd(n)) (previous)
   }
+
+  private val turnStart: State => State = state => state.copy(
+    energy = state.energy +
+      state.bots.size * 20 +
+      state.matrix.R * state.matrix.R * state.matrix.R * (if (state.harmonicsHigh) 30 else 3)
+  )
+
+  private def turnEnd(n: Int): State => State = state => state.copy(
+    bots = state.bots.sorted,
+    trace = state.trace.drop(n)
+  )
 
   // TODO: harmonicsの値などのチェックは
-  private def botMove(bots: Seq[(Nanobot, Int)], state: State): State = bots match {
-    case Nil => state
-    case (bot, idx) +: tail => state.trace.head match {
-      case Command.Halt =>
-        require(state.bots.size == 1)
-        require(state.bots.forall(s => s.pos == Pos(x = 0, y = 0, z = 0)))
-        require(!state.harmonicsHigh)
-        state.copy(bots = IndexedSeq.empty, trace = IndexedSeq.empty)
-      case Command.Wait =>
-        botMove(bots.tail, state.copy(trace = state.trace.tail))
-      case Command.Flip =>
-        botMove(bots.tail, state.copy(trace = state.trace.tail, harmonicsHigh = !state.harmonicsHigh))
-      case Command.SMove(lld) =>
-        botMove(bots.tail, state.copy(
-          energy = state.energy + 2 * lld.mlen,
-          bots = state.bots.updated(idx, bot.copy(pos = bot.pos.move(lld.dx, lld.dy, lld.dz))),
-          trace = state.trace.tail
-        ))
-      case Command.LMove(sld1, sld2) =>
-        botMove(bots.tail, state.copy(
-          energy = state.energy + 2 * (sld1.mlen + sld2.mlen + 2),
-          bots = state.bots.updated(idx, bot.copy(
-            pos = bot.pos.move(sld1.dx + sld2.dx, sld1.dy + sld2.dy, sld1.dz + sld2.dz)
-          )),
-          trace = state.trace.tail
-        ))
-      case Command.FusionP(nd) =>
-        val sidx = state.trace.indexWhere(_.isInstanceOf[Command.FusionS])
-        val (sbot, _) = bots(sidx)
-        require(bot.pos.move(nd.dx, nd.dy, nd.dz) == sbot.pos)
-        // TODO: reverted require
-        botMove(bots.tail, state.copy(
-          energy = state.energy - 24,
-          bots = state.bots
-            .updated(idx, bot.copy(seeds = Seq(bot.seeds, Seq(sbot.bid), sbot.seeds).flatten.sorted))
-            .updated(idx + sidx, sbot.copy(removed = true)),
-          trace = state.trace.updated(sidx, Command.Wait).tail
-        ))
-      case Command.FusionS(nd) =>
-        val pidx = state.trace.indexWhere(_.isInstanceOf[Command.FusionP])
-        val (pbot, _) = bots(pidx)
-        require(bot.pos.move(nd.dx, nd.dy, nd.dz) == pbot.pos)
-        // TODO: reverted require
-        botMove(bots.tail, state.copy(
-          energy = state.energy - 24,
-          bots = state.bots
-            .updated(idx + pidx, pbot.copy(seeds = Seq(pbot.seeds, Seq(bot.bid), bot.seeds).flatten.sorted))
-            .updated(idx, bot.copy(removed = true)),
-          trace = state.trace.updated(pidx, Command.Wait).tail
-        ))
-      case Command.Fission(nd: ND, m: Int) =>
-        require(bot.seeds.size >= m + 1)
-        botMove(bots.tail, state.copy(
-          energy = state.energy + 24,
-          trace = state.trace.tail,
-          bots = state.bots.updated(idx, bot.copy(seeds = bot.seeds.drop(m + 1))) :+
-            Nanobot(bot.seeds.head, bot.pos.move(nd.dx, nd.dy, nd.dz), bot.seeds.tail.take(m))
-        ))
-      case Command.Fill(nd: ND) =>
-        val filled = bot.pos.move(nd.dx, nd.dy, nd.dz)
-        botMove(bots.tail, state.copy(
-          energy = state.energy + (if (state.matrix.get(filled)) 6 else 12),
-          matrix = state.matrix.add(filled),
-          trace = state.trace.tail
-        ))
-      case Command.Void(nd: ND) =>
-        val removed = bot.pos.move(nd.dx, nd.dy, nd.dz)
-        botMove(bots.tail, state.copy(
-          energy = state.energy + (if (state.matrix.get(removed)) -12 else 3),
-          matrix = state.matrix.del(removed),
-          trace = state.trace.tail
-        ))
-    }
+  //  private def botMove(bots: Seq[(Nanobot, Int)], state: State): State = bots match {
+  //      case Command.FusionP(nd) =>
+  //        val sidx = state.trace.indexWhere(_.isInstanceOf[Command.FusionS])
+  //        val (sbot, _) = bots(sidx)
+  //        require(bot.pos.move(nd.dx, nd.dy, nd.dz) == sbot.pos)
+  //        // TODO: reverted require
+  //        botMove(bots.tail, state.copy(
+  //          energy = state.energy - 24,
+  //          bots = state.bots
+  //            .updated(idx, bot.copy(seeds = Seq(bot.seeds, Seq(sbot.bid), sbot.seeds).flatten.sorted))
+  //            .updated(idx + sidx, sbot.copy(removed = true)),
+  //          trace = state.trace.updated(sidx, Command.Wait).tail
+  //        ))
+  //      case Command.FusionS(nd) =>
+  //        val pidx = state.trace.indexWhere(_.isInstanceOf[Command.FusionP])
+  //        val (pbot, _) = bots(pidx)
+  //        require(bot.pos.move(nd.dx, nd.dy, nd.dz) == pbot.pos)
+  //        // TODO: reverted require
+  //        botMove(bots.tail, state.copy(
+  //          energy = state.energy - 24,
+  //          bots = state.bots
+  //            .updated(idx + pidx, pbot.copy(seeds = Seq(pbot.seeds, Seq(bot.bid), bot.seeds).flatten.sorted))
+  //            .updated(idx, bot.copy(removed = true)),
+  //          trace = state.trace.updated(pidx, Command.Wait).tail
+  //        ))
+  //    }
+  //
+  //  }
 
+  private def requireState(run: State => Unit): State => State = (state: State) => {
+    run(state)
+    state
   }
+
+  private def singletonCommand(idx: Int, bot: Nanobot, command: SingletonCommand): State => State =
+    command match {
+      case Command.Halt =>
+        requireState(state => {
+          require(state.bots.size == 1)
+          require(state.bots.forall(s => s.pos == Pos(x = 0, y = 0, z = 0)))
+          require(!state.harmonicsHigh)
+        }) andThen State.bots.set(IndexedSeq.empty)
+      case Command.Wait =>
+        identity[State]
+      case Command.Flip =>
+        State.harmonicsHigh.modify(!_)
+      case Command.SMove(lld) =>
+        State.energy.modify(_ + 2 * lld.mlen) andThen
+          State.bots.modify(_.updated(idx, bot.copy(pos = bot.pos.move(lld.dx, lld.dy, lld.dz))))
+      case Command.LMove(sld1, sld2) =>
+        State.energy.modify(_ + 2 * (sld1.mlen + sld2.mlen + 2)) andThen
+          State.bots.modify(_.updated(idx, bot.copy(
+            pos = bot.pos.move(sld1.dx + sld2.dx, sld1.dy + sld2.dy, sld1.dz + sld2.dz)
+          )))
+      case Command.Fission(nd: ND, m: Int) =>
+        requireState(state => require(bot.seeds.size >= m + 1)) andThen
+          State.energy.modify(_ + 24) andThen
+          State.bots.modify(_.updated(idx, bot.copy(seeds = bot.seeds.drop(m + 1))) :+
+            Nanobot(bot.seeds.head, bot.pos.move(nd.dx, nd.dy, nd.dz), bot.seeds.tail.take(m))
+          )
+      case Command.Fill(nd: ND) =>
+        state => {
+          val filled = bot.pos.move(nd.dx, nd.dy, nd.dz)
+          state.copy(
+            energy = state.energy + (if (state.matrix.get(filled)) 6 else 12),
+            matrix = state.matrix.add(filled)
+          )
+        }
+      case Command.Void(nd: ND) =>
+        state => {
+          val removed = bot.pos.move(nd.dx, nd.dy, nd.dz)
+          state.copy(
+            energy = state.energy + (if (state.matrix.get(removed)) -12 else 3),
+            matrix = state.matrix.del(removed)
+          )
+        }
+    }
 
 }
