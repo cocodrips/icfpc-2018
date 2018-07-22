@@ -2,9 +2,10 @@ using System;
 
 namespace Yuizumi.Icfpc2018
 {
+    using static Harmonics;
     using static Voxel;
 
-    internal static class StateExtension
+    public static class StateExtension
     {
         internal static void FillVoxel(this State s, Coord c)
         {
@@ -25,6 +26,13 @@ namespace Yuizumi.Icfpc2018
                 s.Energy += 3;
             }
         }
+
+        public static void VerifyWellFormed(this State s)
+        {
+            if (s.Harmonics == Low) {
+                Requires.State(s.Matrix.IsGrounded(), "Model is not grounded.");
+            }
+            // TODO(yuizumi): Verify other conditions?
+        }
     }
 }
-

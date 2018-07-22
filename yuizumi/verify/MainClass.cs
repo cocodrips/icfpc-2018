@@ -6,6 +6,8 @@ namespace Yuizumi.Icfpc2018
 {
     internal static class MainClass
     {
+        private const int MaxVerifyR = 50;
+
         private static int Main(string[] args)
         {
             try {
@@ -56,6 +58,7 @@ namespace Yuizumi.Icfpc2018
                     commands.Add(c);
                     if (commands.Count == state.Bots.Count) {
                         state.DoTurn(commands);
+                        if (state.Matrix.R <= MaxVerifyR) state.VerifyWellFormed();
                         commands.Clear();
                     }
                 }
