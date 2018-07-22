@@ -54,7 +54,7 @@ const run = async (problemName, traceFile) => {
     await targetInput.uploadFile(targetFile);
     const sourceInput = await page.$('#srcModelFileIn');
     const sourceFile = `../data/problems/${problemName}_src.mdl`;
-    await sourceFile.uploadFile(sourceFile);
+    await sourceInput.uploadFile(sourceFile);
   }
 
   const traceInput = await page.$('#traceFileIn');
