@@ -4,7 +4,7 @@ import io
 import json
 import subprocess
 import numbers
-from flask import Flask, request, abort, send_file, render_template
+from flask import Flask, request, abort, send_file, render_template, redirect
 from sqlalchemy.sql import text
 from flask_sqlalchemy import SQLAlchemy
 from sys import platform
@@ -62,8 +62,12 @@ def init_db():
 
 
 @app.route("/")
-def _scoreboard():
-    problems, ai_names, highest, scores, sum_scores = get_latest_scores()
+def _index():
+    return redirect('/scoreboard/LA')
+
+@app.route("/scoreboard/<_type>")
+def _scoreboard(_type):
+    problems, ai_names, highest, scores, sum_scores = get_latest_scores(_type)
     return render_template('index.html',
                            problems=problems,
                            ai_names=ai_names,
@@ -72,9 +76,9 @@ def _scoreboard():
                            sum_scores=sum_scores)
 
 
-def get_latest_scores():
+def get_latest_scores(_type):
     '''現在のスコアを取得する'''
-    sql = queries.query_latest_scores
+    sql = queries.query_latest_scores.format(game_type=_type)
     results = db.engine.execute(text(sql))
     scores = collections.defaultdict(dict)
 
@@ -119,16 +123,18 @@ def add_data():
     u_name = request.form.get('user')
     ai_name = request.form.get('ai')
     problem = int(request.form.get('problem'))
+    game_type = int(request.form.get('type'))
     if not u_name or not ai_name or not problem:
         abort(500)
 
-    score = Score(u_name=u_name, ai_name=ai_name, problem=problem)
+    score = Score(u_name=u_name, ai_name=ai_name, 
+                  problem=problem, game_type=game_type)
     db.session.add(score)
     db.session.commit()
 
     fpath = '/data/{}.nbt'.format(score.id)
     f.save(fpath)
-    cmd = "/usr/bin/node score.js ../data/problemsL/LA{0:03d}_tgt.mdl {1}".format(
+    cmd = "/usr/bin/node score.js {}{0:03d} {1}".format(
         problem,
         fpath
     )
