@@ -64,13 +64,15 @@ public class AI
         bool zDir = true;
         bool xDir = true;
         var mayFill = new List<Int3Type>();
-        var toFill = new List<Int3Type>();
+        var toFill = new List<int>();
+        var reverseMargin = Math.Min(14, resolution / 4);
         for (int y = 0; y < resolution - 1; y++)
         {
             for (int x3 = 0; x3 < (resolution + 2) / 3; x3++)
             {
-                for (int zi = 1; zi < resolution; zi++)
+                for (int zi = 1; zi < resolution - 1; zi++)
                 {
+                    int zd = zDir ? 1 : -1;
                     int z = zDir ? zi : resolution - 1 - zi;
                     int x = xDir ? x3 * 3 + 1 : resolution - 1 - x3 * 3 - 1;
 
@@ -79,14 +81,15 @@ public class AI
 
                     toFill.Clear();
                     mayFill.Clear();
-                    mayFill.Add(int3(x, y, z - 1)); // bottom prev
+                    mayFill.Add(int3(x, y, z - zd)); // bottom prev
                     mayFill.Add(int3(x - 1, y, z)); // bottom left
                     mayFill.Add(int3(x + 1, y, z)); // bottom right
 
                     // Positions above should be filled now
                     int fillNowIndex = mayFill.Count;
 
-                    mayFill.Add(int3(x, y, z));
+                    mayFill.Add(int3(x, y, z)); // bottom
+                    mayFill.Add(int3(x, y, z + zd)); // bottom next
 
                     bool fillNow = false;
                     for (int i = 0; i < mayFill.Count; ++i)
@@ -94,7 +97,7 @@ public class AI
                         if (shouldFill(mayFill[i]))
                         {
                             fillNow |= i < fillNowIndex;
-                            toFill.Add(mayFill[i]);
+                            toFill.Add(i);
                         }
                     }
                     if (fillNow)
@@ -102,18 +105,27 @@ public class AI
                         move(botTarget - botPos);
                         botPos = botTarget;
                         int loopDetection = 0;
+                        bool stopNext =
+                            shouldFill(int3(x - 1, y, z + zd))
+                            || shouldFill(int3(x + 1, y, z + zd));
                         int i = -1;
                         while (toFill.Count > 0)
                         {
                             i = (i + 1) % toFill.Count;
+                            int mayFillIndex = toFill[i];
+                            Int3Type fillPos = mayFill[mayFillIndex];
                             if (loopDetection >= toFill.Count)
                             {
-                                flipFillMark(botPos, toFill[i]);
+                                if (mayFillIndex < fillNowIndex || !stopNext)
+                                {
+                                    flipFillMark(botPos, fillPos);
+                                    loopDetection = 0;
+                                }
                                 toFill.RemoveAt(i);
                             }
-                            else if (willGround(toFill[i]))
+                            else if (willGround(fillPos))
                             {
-                                flipFillMark(botPos, toFill[i]);
+                                flipFillMark(botPos, fillPos);
                                 toFill.RemoveAt(i);
                                 loopDetection = 0;
                             }
@@ -208,6 +220,7 @@ public class AI
                             {
                                 flipFillMark(botPos, toFill[i]);
                                 toFill.RemoveAt(i);
+                                loopDetection = 0;
                             }
                             else if (willGround(toFill[i]))
                             {
@@ -298,11 +311,16 @@ public class AI
     // Psudo command
     void flipFillMark(Int3Type botPos, Int3Type fillPos)
     {
-        markFill(fillPos);
-        if (!high && !isGround(fillPos))
+        bool ground = willGround(fillPos);
+        if (ground)
+        {
+            flipIfPossible();
+        }
+        else if (!high)
         {
             flip();
         }
+        markFill(fillPos);
         fill(fillPos - botPos);
     }
 
