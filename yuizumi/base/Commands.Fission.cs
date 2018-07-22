@@ -35,7 +35,7 @@ namespace Yuizumi.Icfpc2018
                 Coord c1 = c0 + mNd;
                 Verify(state.Matrix.Contains(c1), $"{c1} is out of the matrix.");
                 Verify(state.Matrix[c1] == Voxel.Void, $"{c1} is Full.");
-                Verify(bot.Seeds.Count < mM + 1, $"The bot is lack of seeds.");
+                Verify(bot.Seeds.Count >= mM + 1, $"The bot is lack of seeds.");
             }
 
             internal override IEnumerable<Coord> GetVolatile(Nanobot bot)

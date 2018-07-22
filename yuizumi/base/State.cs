@@ -33,7 +33,7 @@ namespace Yuizumi.Icfpc2018
         internal void InsertBot(Nanobot bot)
         {
             int index = mBots.Count;
-            for (; index > 0 && mBots[index].Bid > bot.Bid; index--) {}
+            for (; index > 0 && mBots[index - 1].Bid > bot.Bid; index--) {}
             mBots.Insert(index, bot);
         }
 
