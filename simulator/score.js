@@ -39,21 +39,21 @@ const run = async (problemName, traceFile) => {
 
   if (['LA', 'FA'].includes(problemType)) {
     const modelInput = await page.$('#tgtModelFileIn');
-    const modelFile = `../data/problems/${problemName}_tgt.mdl`;
+    const modelFile = `./data/problems/${problemName}_tgt.mdl`;
     await modelInput.uploadFile(modelFile);
     await page.click('#srcModelEmpty');
   } else if (problemType === 'FD') {
     const modelInput = await page.$('#srcModelFileIn');
-    const modelFile = `../data/problems/${problemName}_src.mdl`;
+    const modelFile = `./data/problems/${problemName}_src.mdl`;
     await modelInput.uploadFile(modelFile);
     await page.click('#tgtModelEmpty');
   } else {
     // FR
     const targetInput = await page.$('#tgtModelFileIn');
-    const targetFile = `../data/problems/${problemName}_tgt.mdl`;
+    const targetFile = `./data/problems/${problemName}_tgt.mdl`;
     await targetInput.uploadFile(targetFile);
     const sourceInput = await page.$('#srcModelFileIn');
-    const sourceFile = `../data/problems/${problemName}_src.mdl`;
+    const sourceFile = `./data/problems/${problemName}_src.mdl`;
     await sourceInput.uploadFile(sourceFile);
   }
 
