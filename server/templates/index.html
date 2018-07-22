@@ -85,7 +85,13 @@
   };
   generate = {
     data: data,
-    axis: axis
+    axis: axis,
+    grid: {
+      y: {
+        show: true,
+        lines: [{value: 769579704, class: 'best-score', text: 'BEST SCORE'}]
+      }
+    }
   };
   var chart = c3.generate(generate);
   </script>
