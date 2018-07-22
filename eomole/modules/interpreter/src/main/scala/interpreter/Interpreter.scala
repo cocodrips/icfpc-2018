@@ -1,16 +1,13 @@
 package interpreter
 
-import scala.collection.BitSet
-
 object Interpreter {
 
-  // TODO: 引数にinitial modelを取る
-  def execute(R: Int, trace: Seq[Command]): State = {
+  def execute(model: Model, trace: Seq[Command]): State = {
     var s = State(
-      R = R,
+      R = model.R,
       energy = 0,
       harmonicsHigh = false,
-      matrix = Model(R, BitSet()),
+      matrix = model,
       bots = IndexedSeq(Nanobot(0, Pos(0, 0, 0), 2 to 20)),
       trace = trace.toIndexedSeq
     )
