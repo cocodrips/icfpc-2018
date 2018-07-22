@@ -159,15 +159,20 @@ public class Runner : MonoBehaviour
         {
             string targetDir = Application.dataPath + "/Temp/" + System.DateTime.Now.ToString("dd-HH-mm-ss");
             print(targetDir);
-            string[] problems = Directory.GetFiles(Application.dataPath + "/../../../data/problemsL/");
+            string[] problems = Directory.GetFiles(Application.dataPath + "/../../data/problemsL/");
             for (int i = 0; i < problems.Length; ++i)
             {
                 string problem = problems [i];
-                if (!problem.EndsWith("_tgt.mdl")) {
+                if (!problem.EndsWith("_tgt.mdl"))
+                {
                     continue;
                 }
                 string problemName = problem.Substring(problem.Length - 13, 5);
-                UnityEditor.EditorUtility.DisplayProgressBar("Run AI", problemName, (float)i / problems.Length);
+                bool cancel = UnityEditor.EditorUtility.DisplayCancelableProgressBar("Run AI", problemName, (float)i / problems.Length);
+                if (cancel)
+                {
+                    break;
+                }
                 Directory.CreateDirectory(targetDir);
                 using (var br = new BinaryReader(File.OpenRead(problem)))
                 {
@@ -176,6 +181,10 @@ public class Runner : MonoBehaviour
                     using (var bw = new BinaryWriter(File.OpenWrite(targetDir + "/" + problemName + ".nbt")))
                     {
                         ai.Write(bw);
+                    }
+                    using (var sw = new StreamWriter(targetDir + "/" + problemName + ".ntt"))
+                    {
+                        ai.Write(sw);
                     }
                 }
             }

@@ -125,28 +125,28 @@ public class Command
                 if (diff1.x != 0)
                 {
                     axis1 = 1;
-                    len1 = EncodeLLD(diff1.x);
+                    len1 = EncodeSLD(diff1.x);
                 } else if (diff1.y != 0)
                 {
                     axis1 = 2;
-                    len1 = EncodeLLD(diff1.y);
+                    len1 = EncodeSLD(diff1.y);
                 } else
                 {
                     axis1 = 3;
-                    len1 = EncodeLLD(diff1.z);
+                    len1 = EncodeSLD(diff1.z);
                 }
                 if (diff2.x != 0)
                 {
                     axis2 = 1;
-                    len2 = EncodeLLD(diff2.x);
+                    len2 = EncodeSLD(diff2.x);
                 } else if (diff2.y != 0)
                 {
                     axis2 = 2;
-                    len2 = EncodeLLD(diff2.y);
+                    len2 = EncodeSLD(diff2.y);
                 } else
                 {
                     axis2 = 3;
-                    len2 = EncodeLLD(diff2.z);
+                    len2 = EncodeSLD(diff2.z);
                 }
                 writer.Write((byte)((axis2 << 6) | (axis1 << 4) | 12));
                 writer.Write((byte)((len2 << 4) | len1));

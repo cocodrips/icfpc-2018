@@ -30,7 +30,7 @@ public class AI
     {
         this.resolution = resolution;
         this.state = new int[resolution * resolution * resolution];
-        for (int i = 0; i < state.Length; i ++)
+        for (int i = 0; i < state.Length; i++)
         {
             if (model(i))
             {
@@ -127,17 +127,27 @@ public class AI
             diff.y -= d;
             smove(int3(0, d, 0));
         }
-        while (diff.x != 0)
+        while (Math.Abs(diff.x) > 5)
         {
             int d = Math.Sign(diff.x) * Math.Min(15, Math.Abs(diff.x));
             diff.x -= d;
             smove(int3(d, 0, 0));
         }
-        while (diff.z != 0)
+        while (Math.Abs(diff.z) > 5)
         {
             int d = Math.Sign(diff.z) * Math.Min(15, Math.Abs(diff.z));
             diff.z -= d;
             smove(int3(0, 0, d));
+        }
+        if (diff.x != 0 && diff.z != 0)
+        {
+            lmove(int3(diff.x, 0, 0), int3(0, 0, diff.z));
+        } else if (diff.x != 0)
+        {
+            smove(int3(diff.x, 0, 0));
+        } else if (diff.z != 0)
+        {
+            smove(int3(0, 0, diff.z));
         }
     }
 
@@ -176,6 +186,11 @@ public class AI
     void smove(Int3Type diff)
     {
         addCommand(Command.Smove(diff));
+    }
+
+    void lmove(Int3Type diff1, Int3Type diff2)
+    {
+        addCommand(Command.Lmove(diff1, diff2));
     }
 
     void fill(Int3Type diff)
