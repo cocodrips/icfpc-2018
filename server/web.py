@@ -112,13 +112,26 @@ def _index():
 def _scoreboard(_type):
     (problems, ai_names, highest,
      scores, board_scores, sum_scores) = get_latest_scores(_type)
+
+    best_query = queries.query_board_score_sum.format(game_type=_type, rank=1)
+    bests = db.engine.execute(text(best_query))
+    tens_query = queries.query_board_score_sum.format(game_type=_type, rank=10)
+    tens = db.engine.execute(text(tens_query))
+
+    board_score_sums = {}
+    for best, ten in zip(bests, tens):
+        board_score_sums = {
+            1: best['score'],
+            10: ten['score']
+        }
     return render_template('index.html',
                            problems=problems,
                            ai_names=ai_names,
                            highest=highest,
                            scores=scores,
                            board_scores=board_scores,
-                           sum_scores=sum_scores)
+                           sum_scores=sum_scores,
+                           board_score_sums=board_score_sums)
 
 
 def get_latest_scores(_type):

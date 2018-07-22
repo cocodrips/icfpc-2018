@@ -94,3 +94,21 @@ FROM
    WHERE game_type LIKE '{game_type}') t1
 WHERE rank = 1 OR rank = 10;
 """
+
+query_board_score_sum = """
+SELECT sum(energy) as score
+FROM (
+       SELECT
+         problem,
+         energy,
+         rank()
+         OVER (
+           PARTITION BY (problem)
+           ORDER BY
+             energy ASC ) AS rank
+       FROM board_score
+       WHERE game_type LIKE '{game_type}'
+        AND problem < 35
+     ) t
+where rank = '{rank}'
+"""
