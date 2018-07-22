@@ -49,6 +49,52 @@
     <div id="chart"></div>
   </div>
 
+  <script>
+  sum_scores = [];
+
+  {% for owner in sum_scores %}
+    sum_scores['{{owner}}_time'] = ['{{owner}}_time'];
+    sum_scores['{{owner}}_data'] = ['{{owner}}_data'];
+    {% for data in sum_scores[owner] %}
+        sum_scores['{{owner}}_time'].push('{{data[0]}}'.substr(0, 19));
+        sum_scores['{{owner}}_data'].push({{data[2]}});
+    {% endfor %}
+  {% endfor %}
+
+  sum_scores_xs = {};
+  {% for owner in sum_scores %}
+    sum_scores_xs['{{owner}}_data'] = '{{owner}}_time';
+  {% endfor %}
+
+  var data = {};
+  data.xs = sum_scores_xs;
+  data.xFormat = '%Y-%m-%d %H:%M:%S';
+  data.columns = [];
+
+  var axis = {
+    x: {
+      type: 'timeseries',
+      tick: {
+        format: '%d %H:%M'
+      }
+    }
+  };
+
+  for (var sum_score in sum_scores) {
+    data.columns.push(sum_scores[sum_score]);
+  };
+  generate = {
+    data: data,
+    axis: axis
+  };
+  var chart = c3.generate(generate);
+  </script>
+
+
+  <div class="siimple-grid-row">
+    <div id="chart"></div>
+  </div>
+
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
     
