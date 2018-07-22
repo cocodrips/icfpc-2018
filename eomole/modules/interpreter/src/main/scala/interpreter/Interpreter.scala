@@ -35,9 +35,14 @@ object Interpreter {
     val fusionSs = commands.filter(_._2.isInstanceOf[Command.FusionS])
     val gfills = commands.filter(_._2.isInstanceOf[Command.GFill])
     val gvoids = commands.filter(_._2.isInstanceOf[Command.GVoid])
-    //    val
-    // TODO: fusion, gfills, gvoids
-    (turnStart andThen singletons andThen fusion(fusionPs, fusionSs) andThen turnEnd(n)) (previous)
+    Seq(
+      turnStart,
+      singletons,
+      fusion(fusionPs, fusionSs),
+      gfill(gfills),
+      gvoid(gvoids),
+      turnEnd(n)
+    ).reduce(_ andThen _)(previous)
   }
 
   private val turnStart: State => State = state => state.copy(
@@ -47,7 +52,7 @@ object Interpreter {
   )
 
   private def turnEnd(n: Int): State => State = state => state.copy(
-    bots = state.bots.filterNot(_ == null).sorted,
+    bots = state.bots.sorted,
     trace = state.trace.drop(n)
   )
 
@@ -64,38 +69,67 @@ object Interpreter {
       )
     }
     require(pairs.size == ps.size)
-    pairs.reduceOption(_ andThen _).getOrElse(identity[State])
+    pairs.reduceOption(_ andThen _).getOrElse(identity[State] _).andThen(State.bots.modify(_.filterNot(_ == null)))
   }
 
-  // TODO: harmonicsの値などのチェックは
-  //  private def botMove(bots: Seq[(Nanobot, Int)], state: State): State = bots match {
-  //      case Command.FusionP(nd) =>
-  //        val sidx = state.trace.indexWhere(_.isInstanceOf[Command.FusionS])
-  //        val (sbot, _) = bots(sidx)
-  //        require(bot.pos.move(nd.dx, nd.dy, nd.dz) == sbot.pos)
-  //        // TODO: reverted require
-  //        botMove(bots.tail, state.copy(
-  //          energy = state.energy - 24,
-  //          bots = state.bots
-  //            .updated(idx, bot.copy(seeds = Seq(bot.seeds, Seq(sbot.bid), sbot.seeds).flatten.sorted))
-  //            .updated(idx + sidx, sbot.copy(removed = true)),
-  //          trace = state.trace.updated(sidx, Command.Wait).tail
-  //        ))
-  //      case Command.FusionS(nd) =>
-  //        val pidx = state.trace.indexWhere(_.isInstanceOf[Command.FusionP])
-  //        val (pbot, _) = bots(pidx)
-  //        require(bot.pos.move(nd.dx, nd.dy, nd.dz) == pbot.pos)
-  //        // TODO: reverted require
-  //        botMove(bots.tail, state.copy(
-  //          energy = state.energy - 24,
-  //          bots = state.bots
-  //            .updated(idx + pidx, pbot.copy(seeds = Seq(pbot.seeds, Seq(bot.bid), bot.seeds).flatten.sorted))
-  //            .updated(idx, bot.copy(removed = true)),
-  //          trace = state.trace.updated(pidx, Command.Wait).tail
-  //        ))
-  //    }
-  //
-  //  }
+  case class Region(min: Pos, max: Pos) {
+    def dimension: Int = (if (max.x - min.x != 0) 1 else 0) + (if (max.y - min.y != 0) 1 else 0) + (if (max.z - min.z != 0) 1 else 0)
+
+    def dimpow: Int = Seq.iterate(2, dimension)(_ * 2).last
+  }
+
+  case object Region {
+    def from(pos: Pos, nd: ND, fd: FD): Region = {
+      val r1 = pos.move(nd.dx, nd.dy, nd.dz)
+      val r2 = r1.move(fd.dx, fd.dy, fd.dz)
+      Region(
+        Pos(Math.min(r1.x, r2.x), Math.min(r1.y, r2.y), Math.min(r1.z, r2.z)),
+        Pos(Math.max(r1.x, r2.x), Math.max(r1.y, r2.y), Math.max(r1.z, r2.z))
+      )
+    }
+  }
+
+  private def gfill(fills: Seq[((Nanobot, Int), Command)]): State => State =
+    fills.map({
+      case ((bot, _), Command.GFill(nd, fd)) => Region.from(bot.pos, nd, fd)
+      case _ => ???
+    }).groupBy(identity).flatMap({
+      case (region, seq) =>
+        require(seq.size == region.dimpow)
+        for {
+          x <- region.min.x to region.max.x
+          y <- region.min.y to region.max.y
+          z <- region.min.z to region.max.z
+        } yield
+          (state: State) => {
+            val filled = Pos(x, y, z)
+            state.copy(
+              energy = state.energy + (if (state.matrix.get(filled)) 6 else 12),
+              matrix = state.matrix.add(filled)
+            )
+          }
+    }).reduceOption(_ andThen _).getOrElse(identity[State])
+
+  private def gvoid(voids: Seq[((Nanobot, Int), Command)]): State => State =
+    voids.map({
+      case ((bot, _), Command.GFill(nd, fd)) => Region.from(bot.pos, nd, fd)
+      case _ => ???
+    }).groupBy(identity).flatMap({
+      case (region, seq) =>
+        require(seq.size == region.dimpow)
+        for {
+          x <- region.min.x to region.max.x
+          y <- region.min.y to region.max.y
+          z <- region.min.z to region.max.z
+        } yield
+          (state: State) => {
+            val voided = Pos(x, y, z)
+            state.copy(
+              energy = state.energy + (if (state.matrix.get(voided)) -12 else 3),
+              matrix = state.matrix.del(voided)
+            )
+          }
+    }).reduceOption(_ andThen _).getOrElse(identity[State])
 
   private def requireState(run: State => Unit): State => State = (state: State) => {
     run(state)

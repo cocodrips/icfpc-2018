@@ -28,9 +28,31 @@ class InterpreterTest extends FunSuite {
   }
 
   test("FissionとFusionが計算できる") {
-    val trace = IndexedSeq(Command.Fission(ND(1, 0, 0), 0), Command.FusionP(ND(1, 0, 0)), Command.FusionS(ND(-1, 0, 0)), Command.Halt)
+    val trace = IndexedSeq(
+      Command.Fission(ND(1, 0, 0), 0),
+      Command.FusionP(ND(1, 0, 0)),
+      Command.FusionS(ND(-1, 0, 0)),
+      Command.Halt
+    )
     val model = Model.decode(Files.readAllBytes(Paths.get("../data/problemsL/LA001_tgt.mdl")))
-//    Files.write(Paths.get("../data/FissionAndFusionTrace.nbt"), TraceEncoder.encode(trace).toArray)
+    //    Files.write(Paths.get("../data/FissionAndFusionTrace.nbt"), TraceEncoder.encode(trace).toArray)
     assertResult(expected = 72080)(Interpreter.execute(model.copy(bitset = BitSet()), trace.toIndexedSeq).energy)
+  }
+
+  test("GFillが計算できる") {
+    val trace = IndexedSeq(
+      Command.Fission(ND(1, 0, 0), 0),
+      Command.Fission(ND(0, 1, 0), 0),
+      Command.Wait,
+      Command.Wait,
+      Command.SMove(LLD(Axis.Y, 2)),
+      Command.SMove(LLD(Axis.Y, 2)),
+      Command.GFill(ND(0, 1, 0), FD(0, 1, 0)),
+      Command.Flip,
+      Command.GFill(ND(0, -1, 0), FD(0, -1, 0))
+    )
+    val model = Model.decode(Files.readAllBytes(Paths.get("../data/problemsL/LA001_tgt.mdl")))
+//    Files.write(Paths.get("../data/GFillTrace.nbt"), TraceEncoder.encode(trace).toArray)
+    assertResult(expected = 96260)(Interpreter.execute(model.copy(bitset = BitSet()), trace.toIndexedSeq).energy)
   }
 }
