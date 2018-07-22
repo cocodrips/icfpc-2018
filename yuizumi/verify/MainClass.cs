@@ -19,6 +19,9 @@ namespace Yuizumi.Icfpc2018
             } catch (IOException e) {
                 Console.Error.WriteLine($"{GetProgramName()}: {e.Message}");
                 return 1;
+            } catch (InvalidOperationException e) {
+                Console.Error.WriteLine($"{GetProgramName()}: {e.Message}");
+                return 1;
             }
         }
 
@@ -54,7 +57,6 @@ namespace Yuizumi.Icfpc2018
 
             using (Stream stream = new FileStream(args[0], FileMode.Open)) {
                 foreach (Command c in NbtFile.Load(stream)) {
-                    Console.WriteLine(c);
                     commands.Add(c);
                     if (commands.Count == state.Bots.Count) {
                         state.DoTurn(commands);
@@ -64,7 +66,11 @@ namespace Yuizumi.Icfpc2018
                 }
             }
 
-            Console.WriteLine($"Energy: {state.Energy}");
+            if (!Matrix.AreEqual(state.Matrix, target)) {
+                throw new InvalidOperationException("Matrix does not match the target.");
+            }
+
+            Console.WriteLine(state.Energy);
         }
     }
 }

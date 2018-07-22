@@ -47,6 +47,19 @@ namespace Yuizumi.Icfpc2018
                 && (c.Z >= 0 && c.Z < R);
         }
 
+        public static bool AreEqual(Matrix m1, Matrix m2)
+        {
+            if (m1.R != m2.R) return false;
+
+            for (int x = 0; x < m1.R; x++)
+            for (int y = 0; y < m1.R; y++)
+            for (int z = 0; z < m1.R; z++) {
+                if (m1.mVoxels[x, y, z] != m2.mVoxels[x, y, z])
+                    return false;
+            }
+            return true;
+        }
+
         public override string ToString() => $"Matrix({R})";
     }
 }
