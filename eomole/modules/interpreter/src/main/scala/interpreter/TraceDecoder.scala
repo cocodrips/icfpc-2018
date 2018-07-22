@@ -21,6 +21,8 @@ object TraceDecoder {
 
   private def decodeSLD(a: Int, i: Int): SLD = SLD(decodeAxis(a), i - 5)
 
+  private def decodeFD(dx: Int, dy: Int, dz: Int) = FD(dx -30, dy - 30, dz - 30)
+
   @tailrec
   def decode(bytes: Seq[Byte], acc: ArrayBuffer[Command] = ArrayBuffer()): Seq[Command] =
     if (bytes.isEmpty) acc.result() else {
@@ -38,6 +40,9 @@ object TraceDecoder {
         case (nd, 6, tail) => decode(tail, acc += Command.FusionS(decodeND(nd)))
         case (nd, 5, h +: t) => decode(t, acc += Command.Fission(decodeND(nd), h))
         case (nd, 3, tail) => decode(tail, acc += Command.Fill(decodeND(nd)))
+        case (nd, 2, tail) => decode(tail, acc += Command.Void(decodeND(nd)))
+        case (nd, 1, dx +: dy +: dz +: t) => decode(t, acc += Command.GFill(decodeND(nd), decodeFD(dx, dy, dz)))
+        case (nd, 0, dx +: dy +: dz +: t) => decode(t, acc += Command.GVoid(decodeND(nd), decodeFD(dx, dy, dz)))
         case _ => throw new UnsupportedOperationException
       }
     }

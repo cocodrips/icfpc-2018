@@ -14,8 +14,23 @@ class TraceDecoderEncoderTest extends FunSuite {
     }
   }
 
-  test("読み書きできる") {
-    val input = Seq(Command.Fission(ND(1, 0, 0), 0), Command.FusionP(ND(1, 0, 0)), Command.FusionS(ND(-1, 0, 0)), Command.Halt)
+  test("Fission,Fusionが読み書きできる") {
+    val input = Seq(
+      Command.Fission(ND(1, 0, 0), 0),
+      Command.FusionP(ND(1, 0, 0)),
+      Command.FusionS(ND(-1, 0, 0)),
+      Command.Halt
+    )
+    val output = TraceDecoder.decode(TraceEncoder.encode(input))
+    assertResult(input.seq)(output.seq)
+  }
+
+  test("Void,GFill,FGVoidが読み書きできる") {
+    val input = Seq(
+      Command.Void(ND(1, 0, 0)),
+      Command.GFill(ND(1, 0, 0), FD(1, 0, 0)),
+      Command.GVoid(ND(1, 0, 0), FD(1, 0, 0))
+    )
     val output = TraceDecoder.decode(TraceEncoder.encode(input))
     assertResult(input.seq)(output.seq)
   }
