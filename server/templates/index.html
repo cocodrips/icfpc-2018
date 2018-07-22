@@ -115,7 +115,9 @@
               <div class="siimple-table-cell"> {{ prob }}</div>
               <div class="siimple-table-cell"> 
                 {% if board_scores[prob] %}
-                {{ format_number(board_scores[prob]) }}({{ (board_scores[prob] * 100 / highest[prob]) | round(1, 'floor') }}%)
+                {{ format_number(board_scores[prob][1]) }}                   
+                  ①{{ (board_scores[prob][1] * 100 / highest[prob]) | round(1, 'floor') }}%
+                  ⑩{{ (board_scores[prob][10] * 100 / highest[prob]) | round(1, 'floor') }}%
                 {% endif %}
               </div>
               {% for ai in ai_names %}

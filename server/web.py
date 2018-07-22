@@ -154,11 +154,10 @@ def get_latest_scores(_type):
 
     sql = queries.query_board_score.format(game_type=_type)
     results = db.engine.execute(text(sql))
-    # board_scores = collections.defaultdict(dict)
-    board_scores = {}
+    board_scores = collections.defaultdict(dict)
+
     for result in results:
-        # board_scores[result['problem']][result['rank']] = result['energy']
-        board_scores[result['problem']] = result['energy']
+        board_scores[result['problem']][result['rank']] = result['energy']
 
     sql = queries.query_sum_score.format(game_type=_type)
     results = db.engine.execute(text(sql))
