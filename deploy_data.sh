@@ -10,4 +10,8 @@ unzip data/dfltTracesL.zip -d data/dfltTraces
 unzip data/dfltTracesF.zip -d data/dfltTraces
 unzip data/problemsL.zip -d data/problems
 unzip data/problemsF.zip -d data/problems
+unzip data/dfltTracesL.zip -d simulator/data/dfltTraces
+unzip data/dfltTracesF.zip -d simulator/data/dfltTraces
+unzip data/problemsL.zip -d simulator/data/problems
+unzip data/problemsF.zip -d simulator/data/problems
 rm data/*.zip
