@@ -29,7 +29,15 @@ namespace Yuizumi.Icfpc2018
                 => (mFd.DX >= 0) && (mFd.DY >= 0) && (mFd.DZ >= 0);
 
             internal override IEnumerable<byte> Encode()
-                => throw new System.NotImplementedException();
+            {
+                int nd = DeltaEncoder.EncodeNd(mNd);
+                (int fx, int fy, int fz) = DeltaEncoder.EncodeFd(mFd);
+
+                yield return (byte) (0b00000001 | (nd << 3));
+                yield return (byte) (0b00000000 | (fx << 0));
+                yield return (byte) (0b00000000 | (fy << 0));
+                yield return (byte) (0b00000000 | (fz << 0));
+            }
 
             private Region GetRegion(Nanobot bot)
                 => Region.Of(bot.Pos + mNd, bot.Pos + mNd + mFd);

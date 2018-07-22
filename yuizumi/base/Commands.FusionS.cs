@@ -23,7 +23,10 @@ namespace Yuizumi.Icfpc2018
             private readonly Delta mNd;
 
             internal override IEnumerable<byte> Encode()
-                => throw new System.NotImplementedException();
+            {
+                int nd = DeltaEncoder.EncodeNd(mNd);
+                yield return (byte) (0b00000110 | (nd << 3));
+            }
 
             internal override void VerifyPreconds(State state, Nanobot botS)
             {
