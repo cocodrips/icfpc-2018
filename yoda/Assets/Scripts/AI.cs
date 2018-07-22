@@ -63,6 +63,8 @@ public class AI
         Int3Type botPos = int3(0, 0, 0);
         bool zDir = true;
         bool xDir = true;
+        var mayFill = new List<Int3Type>();
+        var toFill = new List<Int3Type>();
         for (int y = 0; y < resolution - 1; y++)
         {
             for (int x3 = 0; x3 < (resolution + 2) / 3; x3++)
@@ -71,36 +73,51 @@ public class AI
                 {
                     int z = zDir ? zi : resolution - 1 - zi;
                     int x = xDir ? x3 * 3 + 1 : resolution - 1 - x3 * 3 - 1;
-                    int xd = xDir ? 1 : -1;
+
+                    // Bot will move to here if needed
                     var botTarget = int3(x, y + 1, z);
-                    var prev = int3(x, y, z - 1);
-                    var left = int3(x - xd, y, z);
-                    var center = int3(x + 0, y, z);
-                    var right = int3(x + xd, y, z);
-                    bool needPrev = shouldFill(prev);
-                    bool needLeft = shouldFill(left);
-                    bool needCenter = shouldFill(center);
-                    bool needRight = shouldFill(right);
-                    if (needPrev || needLeft || needRight)
+
+                    toFill.Clear();
+                    mayFill.Clear();
+                    mayFill.Add(int3(x, y, z - 1)); // bottom prev
+                    mayFill.Add(int3(x - 1, y, z)); // bottom left
+                    mayFill.Add(int3(x + 1, y, z)); // bottom right
+
+                    // Positions above should be filled now
+                    int fillNowIndex = mayFill.Count;
+
+                    mayFill.Add(int3(x, y, z));
+
+                    bool fillNow = false;
+                    for (int i = 0; i < mayFill.Count; ++i)
+                    {
+                        if (shouldFill(mayFill[i]))
+                        {
+                            fillNow |= i < fillNowIndex;
+                            toFill.Add(mayFill[i]);
+                        }
+                    }
+                    if (fillNow)
                     {
                         move(botTarget - botPos);
                         botPos = botTarget;
-                        // TODO: Reorder and flip redunduncy
-                        if (needPrev)
+                        int loopDetection = 0;
+                        int i = -1;
+                        while (toFill.Count > 0)
                         {
-                            flipFillMark(botPos, prev);
-                        }
-                        if (needCenter)
-                        {
-                            flipFillMark(botPos, center);
-                        }
-                        if (needLeft)
-                        {
-                            flipFillMark(botPos, left);
-                        }
-                        if (needRight)
-                        {
-                            flipFillMark(botPos, right);
+                            i = (i + 1) % toFill.Count;
+                            if (loopDetection >= toFill.Count)
+                            {
+                                flipFillMark(botPos, toFill[i]);
+                                toFill.RemoveAt(i);
+                            }
+                            else if (willGround(toFill[i]))
+                            {
+                                flipFillMark(botPos, toFill[i]);
+                                toFill.RemoveAt(i);
+                                loopDetection = 0;
+                            }
+                            loopDetection++;
                         }
                         flipIfPossible();
                     }
@@ -124,21 +141,21 @@ public class AI
     {
         while (diff.y != 0)
         {
-            int d = Math.Sign(diff.y) * Math.Min(15, Math.Abs(diff.y));
-            diff.y -= d;
-            smove(int3(0, d, 0));
+            Int3Type lld = int3(0, longestLLD(diff.y), 0);
+            diff -= lld;
+            smove(lld);
         }
         while (Math.Abs(diff.x) > 5)
         {
-            int d = Math.Sign(diff.x) * Math.Min(15, Math.Abs(diff.x));
-            diff.x -= d;
-            smove(int3(d, 0, 0));
+            Int3Type lld = int3(longestLLD(diff.x), 0, 0);
+            diff -= lld;
+            smove(lld);
         }
         while (Math.Abs(diff.z) > 5)
         {
-            int d = Math.Sign(diff.z) * Math.Min(15, Math.Abs(diff.z));
-            diff.z -= d;
-            smove(int3(0, 0, d));
+            Int3Type lld = int3(0, 0, longestLLD(diff.z));
+            diff -= lld;
+            smove(lld);
         }
         if (diff.x != 0 && diff.z != 0)
         {
@@ -152,6 +169,11 @@ public class AI
         {
             smove(int3(0, 0, diff.z));
         }
+    }
+
+    int longestLLD(int diff)
+    {
+        return Math.Sign(diff) * Math.Min(15, Math.Abs(diff));
     }
 
     // Psudo command
@@ -290,6 +312,26 @@ public class AI
             }
         }
         state[posToIndex(pos)] = minNonZero;
+    }
+
+    bool willGround(Int3Type pos)
+    {
+        if (!isValid(pos))
+        {
+            return false;
+        }
+        if (pos.y == 0)
+        {
+            return true;
+        }
+        for (int i = 0; i < neighbor.Length; i++)
+        {
+            if (isGround(pos + neighbor[i]))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     int unionFind(int id)
