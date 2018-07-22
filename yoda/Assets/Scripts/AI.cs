@@ -136,6 +136,125 @@ public class AI
         return commands;
     }
 
+    public List<Command> ComputeV2()
+    {
+        this.commands.Clear();
+        Int3Type botPos = int3(0, 0, 0);
+        bool zDir = true;
+        bool xDir = true;
+        var mayFill = new List<Int3Type>();
+        var toFill = new List<Int3Type>();
+        for (int y3 = 0; y3 < (resolution + 2) / 3; y3++)
+        {
+            bool movedInThisPlane = false;
+            for (int x3 = 0; x3 < (resolution + 2) / 3; x3++)
+            {
+                int zd = zDir ? 1 : -1;
+                int xd = xDir ? 1 : -1;
+                bool movedInThisLine = false;
+                for (int zi = 1; zi < resolution - 1; zi++)
+                {
+                    int z = zDir ? zi : resolution - 1 - zi;
+                    int x = xDir ? x3 * 3 + 1 : resolution - 1 - x3 * 3 - 1;
+                    int y = y3 * 3;
+                    // Bot will move to here if needed
+                    var botTarget = int3(x, y + 1, z);
+
+                    toFill.Clear();
+                    mayFill.Clear();
+                    mayFill.Add(int3(x, y, z - zd)); // bottom back
+                    mayFill.Add(int3(x - 1, y, z)); // bottom left
+                    mayFill.Add(int3(x + 1, y, z)); // bottom right
+                    mayFill.Add(int3(x + 0, y + 1, z - zd)); // back
+                    mayFill.Add(int3(x - 1, y + 1, z - zd)); // back left
+                    mayFill.Add(int3(x + 1, y + 1, z - zd)); // back right
+                    mayFill.Add(int3(x, y + 2, z - zd)); // top back
+                    mayFill.Add(int3(x - 1, y + 2, z)); // top left
+                    mayFill.Add(int3(x + 1, y + 2, z)); // top right
+
+                    // Positions above should be filled now
+                    int fillNowIndex = mayFill.Count;
+
+                    mayFill.Add(int3(x, y, z));  // bottom
+                    mayFill.Add(int3(x, y + 2, z));  // top
+                    mayFill.Add(int3(x + 1, y + 1, z));  // left
+                    mayFill.Add(int3(x - 1, y + 1, z));  // right
+                    mayFill.Add(int3(x, y, z + zd));  // bottom forward
+                    mayFill.Add(int3(x, y + 2, z + zd)); // forward top
+                    mayFill.Add(int3(x - 1, y + 1, z + zd)); // forward left
+                    mayFill.Add(int3(x + 1, y + 1, z + zd)); // forward right
+
+                    bool fillNow = false;
+                    for (int i = 0; i < mayFill.Count; ++i)
+                    {
+                        if (shouldFill(mayFill[i]))
+                        {
+                            fillNow |= i < fillNowIndex;
+                            toFill.Add(mayFill[i]);
+                        }
+                    }
+                    if (fillNow)
+                    {
+                        movedInThisLine = true;
+                        movedInThisPlane = true;
+                        move(botTarget - botPos);
+                        botPos = botTarget;
+                        int loopDetection = 0;
+                        int i = -1;
+                        while (toFill.Count > 0)
+                        {
+                            i = (i + 1) % toFill.Count;
+                            if (loopDetection >= toFill.Count)
+                            {
+                                flipFillMark(botPos, toFill[i]);
+                                toFill.RemoveAt(i);
+                            }
+                            else if (willGround(toFill[i]))
+                            {
+                                flipFillMark(botPos, toFill[i]);
+                                toFill.RemoveAt(i);
+                                loopDetection = 0;
+                            }
+                            loopDetection++;
+                        }
+                        flipIfPossible();
+                    }
+                }
+                bool last = !((x3 + 1) < (resolution + 2) / 3);
+                if (last && movedInThisPlane)
+                {
+                    Int3Type blocker = botPos + int3(0, 1, zd);
+                    Int3Type forward = int3(0, 0, zd * (isFilled(blocker) ? 2 : 1));
+                    Int3Type up = int3(0, 3, 0);
+                    lmove(forward, up);
+                    botPos += forward + up;
+                }
+                else if (!last && movedInThisLine)
+                {
+                    Int3Type blocker = botPos + int3(xd, 0, zd);
+                    Int3Type forward = int3(0, 0, zd * (isFilled(blocker) ? 2 : 1));
+                    Int3Type shift = int3(3 * xd, 0, 0);
+                    lmove(forward, shift);
+                    botPos += forward + shift;
+                }
+                zDir = !zDir;
+            }
+            xDir = !xDir;
+        }
+        if (high)
+        {
+            flip();
+        }
+        move(int3(0, resolution - 1 - botPos.y, 0));
+        botPos.y = resolution - 1;
+        move(int3(-botPos.x, 0, -botPos.z));
+        botPos.x = 0;
+        botPos.z = 0;
+        move(int3(0, -botPos.y, 0));
+        halt();
+        return commands;
+    }
+
     // Psudo command
     void move(Int3Type diff)
     {
