@@ -5,30 +5,59 @@
   <meta name="viewport"
         content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"/>
   <title>Score Board</title>
+  
+
   <link rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 <div class="siimple-navbar siimple-navbar--extra-large siimple-navbar--primary">
   <div class="siimple-navbar-title">udon</div>
-  <div class="siimple--float-right"><a class="siimple-navbar-item" href="/">Score
-    Board</a><a class="siimple-navbar-item" href="/">Simulator</a></div>
+  <div class="siimple--float-right">
+    <a class="siimple-navbar-item" href="/scoreboard/LA">LA</a>
+    <a class="siimple-navbar-item" href="/scoreboard/FA">FA</a>
+    <a class="siimple-navbar-item" href="/scoreboard/FD">FD</a>
+    <a class="siimple-navbar-item" href="/scoreboard/FR">FR</a>
+    <a class="siimple-navbar-item" href="/submission">ベストスコアのDL</a></div>
 </div>
+
+{# {{ sum_scores }} #}
+
+{% for owner in sum_scores %}
+  <p><strong>OWNER:</strong> {{ owner }}</p>
+  {% for data in sum_scores[owner] %}
+    {% for i in data %}
+      <p>{{ i }}</p>
+    {% endfor %}
+  {% endfor %}
+{% endfor %}
+
+
 <div class="siimple-content siimple-content--extra-large">
 
-  <div class="siimple-grid-row">
-    <div class="siimple-grid-col siimple-grid-col--12">
-      {% for ai in ai_names %}
-        <div class="simmple-checkbox">
-          <input type="checkbox" id="checkfor{{ ai }}" checked="checked"/>
-          <label for="checkfor{{ ai }}">{{ ai }}</label>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
+{#  <div class="siimple-grid-row">#}
+{#    <div class="siimple-grid-col siimple-grid-col--12">#}
+{#      <form method="get">#}
+{#        <div class="siimple--float-left">#}
+{#          {% for ai in ai_names %}#}
+{#            <div class="simmple-checkbox">#}
+{#              <input type="checkbox" name="ai" id="{{ ai }}" value="{{ ai }}"#}
+{#                     checked="checked"/>#}
+{#              <label for="{{ ai }}">{{ ai }}</label>#}
+{#            </div>#}
+{#          {% endfor %}#}
+{#        </div>#}
+{#        <div class="siimple--float-right">#}
+{#          <input class="siimple-btn siimple-btn--error" type="submit"#}
+{#                 value="Submit"/>#}
+{#        </div>#}
+{#      </form>#}
+{#    </div>#}
+{#  </div>#}
 
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
+    
       <div class="siimple-table siimple-table--striped">
         <div class="siimple-table-header">
           <div class="siimple-table-row">
@@ -40,18 +69,27 @@
           </div>
         </div>
 
+      
 
         <div class="siimple-table-body">
           {% for prob in problems %}
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
-              <div class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
+              <div class="siimple-table-cell"> 
+                {% if board_scores[prob] %}
+                {{ format_number(board_scores[prob]) }}({{ (board_scores[prob] * 100 / highest[prob]) | round(0, 'floor') }}%)
+                {% endif %}
+              </div>
               {% for ai in ai_names %}
                 <div class="siimple-table-cell
-                            {% if scores[ai][prob] == highest[prob] %}
+                            {% if scores[ai][prob] and scores[ai][prob]['energy'] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
-                            ">{{ format_number(scores[ai][prob]) }}</div>
+                            ">
+                  {% if prob in scores[ai] %}
+                    {{ format_number(scores[ai][prob]['energy']) }}
+                  {% endif %}
+                </div>
               {% endfor %}
             </div>
           {% endfor %}

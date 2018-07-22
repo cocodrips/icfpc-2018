@@ -1,12 +1,18 @@
 package interpreter
 
+import monocle.macros.Lenses
+
 import scala.collection.BitSet
 
+@Lenses
 case class Model(R: Int, bitset: BitSet) {
   def get(pos: Pos): Boolean = bitset(pos.x * R * R + pos.y * R + pos.z)
 
   def add(pos: Pos): Model =
     copy(bitset = bitset + (pos.x * R * R + pos.y * R + pos.z))
+
+  def del(pos: Pos): Model =
+    copy(bitset = bitset - (pos.x * R * R + pos.y * R + pos.z))
 }
 
 object Model {
