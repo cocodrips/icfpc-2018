@@ -21,6 +21,7 @@ public class AI
     };
 
     List<int> idToGroup = new List<int>() { 0, 1 };
+    int groundedGroupIndex = 1;
     List<Command> commands = new List<Command>();
     int resolution;
     bool high;
@@ -101,6 +102,7 @@ public class AI
                         {
                             flipFillMark(botPos, right);
                         }
+                        flipIfPossible();
                     }
                 }
                 zDir = !zDir;
@@ -110,7 +112,6 @@ public class AI
         if (high)
         {
             flip();
-            high = false;
         }
         move(int3(-botPos.x, 0, -botPos.z));
         move(int3(0, -botPos.y, 0));
@@ -158,7 +159,6 @@ public class AI
         if (!high && !isGround(fillPos))
         {
             flip();
-            high = true;
         }
         fill(fillPos - botPos);
     }
@@ -180,6 +180,7 @@ public class AI
 
     void flip()
     {
+        high = !high;
         addCommand(Command.Flip());
     }
 
@@ -222,6 +223,25 @@ public class AI
     bool shouldFill(Int3Type pos)
     {
         return isValid(pos) && state [posToIndex(pos)] == ShouldFillId;
+    }
+
+    void flipIfPossible()
+    {
+        if (!high)
+        {
+            return;
+        }
+        while (unionFind(groundedGroupIndex) == GroundId)
+        {
+            if (groundedGroupIndex < idToGroup.Count - 1)
+            {
+                groundedGroupIndex++;
+            } else
+            {
+                flip();
+                return;
+            }
+        }
     }
 
     void markFill(Int3Type pos)
