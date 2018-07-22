@@ -6,9 +6,10 @@ import subprocess
 import numbers
 from flask import Flask, request, abort, send_file, render_template
 from sqlalchemy.sql import text
-import zipfile
 from flask_sqlalchemy import SQLAlchemy
 from sys import platform
+import tempfile
+import shutil
 
 import locale
 
@@ -192,17 +193,14 @@ def get_submission():
                AND latest.score_min = s.energy;
         ''')
 
-    memory_file = io.BytesIO()
-    with zipfile.ZipFile(memory_file, 'w') as zf:
+    with tempfile.TemporaryDirectory() as temp_dir:
         for row in result:
             fid = row['id']
             problem = row['problem']
-            data = zipfile.ZipInfo(filename="LA{0:03d}.nbt".format(problem))
-            data.compress_type = zipfile.ZIP_DEFLATED
-            zf.write('/data/{}.nbt'.format(fid), '{}.nbt'.format(fid))
-    memory_file.seek(0)
-    return send_file(memory_file, attachment_filename='submission.zip',
-                     as_attachment=True)
+            shutil.copyfile('/data/{}.nbt'.format(fid), '{0}/LA{1:03d}.nbt'.format(temp_dir, problem))
+        zip_filename = '{}/submission.zip'.format(temp_dir)
+        subprocess.call('zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(zip_filename), shell=True, cwd=temp_dir);
+        return send_file(zip_filename, attachment_filename='submission.zip', as_attachment=True)
 
 
 if __name__ == '__main__':
