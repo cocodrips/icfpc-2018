@@ -55,7 +55,7 @@ FROM (SELECT
         problem,
         max(create_at) AS create_min
       FROM score
-      WHERE energy > 0 
+      WHERE energy > 0 and game_type LIKE '{game_type}'
       GROUP BY u_name,
         ai_name,
         problem) latest
