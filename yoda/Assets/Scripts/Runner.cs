@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ public class Runner : MonoBehaviour
     public GameObject botPrefab;
     public List<GameObject> filledObjects = new List<GameObject>();
     public List<GameObject> botObjects = new List<GameObject>();
+
+#if UNITY_EDITOR
 
     void Start()
     {
@@ -27,6 +30,7 @@ public class Runner : MonoBehaviour
         ShowBots();
         AI ai = new AI(state.Resolution, state.ShouldFill);
         state.AddCommand(ai.Compute());
+        Debug.Log("Voxel:" + Enumerable.Range(0, state.Volume).Where(i => state.ShouldFill(i)).Count());
     }
 
     void Update()
@@ -128,7 +132,6 @@ public class Runner : MonoBehaviour
         state.Clear();
     }
 
-#if UNITY_EDITOR
     [ContextMenu("Read model")]
     void ReadModel()
     {
