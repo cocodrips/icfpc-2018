@@ -210,6 +210,18 @@ def add_data():
     db.session.commit()
     return str(score.id)
 
+
+@app.route("/update/<_id>", methods=['POST'])
+def update_score(_id):
+    score = Score.query.filter_by(id=_id).first()
+    data = request.json
+    score.energy = data['energy']
+    score.commands = data['commands']
+    score.spent_time = data['time']
+    db.session.commit()
+    return "OK"
+    
+    
 @app.route("/data/<sid>", methods=['GET'])
 def get_data(sid):
     score = Score.query.filter_by(id=sid).first()
