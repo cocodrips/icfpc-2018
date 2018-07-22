@@ -39,7 +39,7 @@ class Score(db.Model):
     commands = db.Column(db.Integer, default=-10)
     spent_time = db.Column(db.Integer, default=-10)
     create_at = db.Column(db.DateTime, default=db.func.now())
-    game_type = db.Column(db.String(10))
+    game_type = db.Column(db.String(10), default='LA')
 
 
 @app.context_processor
