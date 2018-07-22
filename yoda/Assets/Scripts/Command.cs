@@ -105,11 +105,13 @@ public class Command
                 {
                     axis = 1;
                     len = EncodeLLD(diff1.x);
-                } else if (diff1.y != 0)
+                }
+                else if (diff1.y != 0)
                 {
                     axis = 2;
                     len = EncodeLLD(diff1.y);
-                } else
+                }
+                else
                 {
                     axis = 3;
                     len = EncodeLLD(diff1.z);
@@ -126,11 +128,13 @@ public class Command
                 {
                     axis1 = 1;
                     len1 = EncodeSLD(diff1.x);
-                } else if (diff1.y != 0)
+                }
+                else if (diff1.y != 0)
                 {
                     axis1 = 2;
                     len1 = EncodeSLD(diff1.y);
-                } else
+                }
+                else
                 {
                     axis1 = 3;
                     len1 = EncodeSLD(diff1.z);
@@ -139,11 +143,13 @@ public class Command
                 {
                     axis2 = 1;
                     len2 = EncodeSLD(diff2.x);
-                } else if (diff2.y != 0)
+                }
+                else if (diff2.y != 0)
                 {
                     axis2 = 2;
                     len2 = EncodeSLD(diff2.y);
-                } else
+                }
+                else
                 {
                     axis2 = 3;
                     len2 = EncodeSLD(diff2.z);

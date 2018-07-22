@@ -45,8 +45,8 @@ public class State
         int initialBotsCount = bots.Count;
         for (int i = 0; i < initialBotsCount; i++)
         {
-            Command command = trace [executed + i];
-            Bot bot = bots [i];
+            Command command = trace[executed + i];
+            Bot bot = bots[i];
             UncheckedRun(bot, command);
             bot.LastCommand = command;
         }
@@ -169,16 +169,17 @@ public class State
     {
         if (value)
         {
-            matrix [index] |= (byte)(1 << bit);
-        } else
+            matrix[index] |= (byte)(1 << bit);
+        }
+        else
         {
-            matrix [index] &= (byte)(0xFF ^ (1 << bit));
+            matrix[index] &= (byte)(0xFF ^ (1 << bit));
         }
     }
 
     private bool GetMatrix(int index, int bit)
     {
-        return ((matrix [index] >> bit) & 1) != 0;
+        return ((matrix[index] >> bit) & 1) != 0;
     }
 
     public bool ShouldFill(int index)

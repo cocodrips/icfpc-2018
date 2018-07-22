@@ -75,15 +75,16 @@ public class Runner : MonoBehaviour
         }
         if (visible)
         {
-            if (!filledObjects [i])
+            if (!filledObjects[i])
             {
-                filledObjects [i] = Instantiate<GameObject>(filledPrefab, transform);
+                filledObjects[i] = Instantiate<GameObject>(filledPrefab, transform);
             }
-            filledObjects [i].transform.position = state.IndexToPos(i);
-            filledObjects [i].SetActive(true);
-        } else if (filledObjects [i])
+            filledObjects[i].transform.position = state.IndexToPos(i);
+            filledObjects[i].SetActive(true);
+        }
+        else if (filledObjects[i])
         {
-            filledObjects [i].SetActive(false);
+            filledObjects[i].SetActive(false);
         }
     }
 
@@ -103,13 +104,13 @@ public class Runner : MonoBehaviour
         }
         foreach (Bot bot in state.Bots)
         {
-            if (!botObjects [bot.Bid])
+            if (!botObjects[bot.Bid])
             {
-                botObjects [bot.Bid] = Instantiate<GameObject>(botPrefab, transform);
-                botObjects [bot.Bid].name = "Bid " + bot.Bid;
+                botObjects[bot.Bid] = Instantiate<GameObject>(botPrefab, transform);
+                botObjects[bot.Bid].name = "Bid " + bot.Bid;
             }
-            botObjects [bot.Bid].transform.position = bot.Pos;
-            botObjects [bot.Bid].SetActive(true);
+            botObjects[bot.Bid].transform.position = bot.Pos;
+            botObjects[bot.Bid].SetActive(true);
         }
     }
 
@@ -127,7 +128,7 @@ public class Runner : MonoBehaviour
         state.Clear();
     }
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     [ContextMenu("Read model")]
     void ReadModel()
     {
@@ -162,7 +163,7 @@ public class Runner : MonoBehaviour
             string[] problems = Directory.GetFiles(Application.dataPath + "/../../data/problemsL/");
             for (int i = 0; i < problems.Length; ++i)
             {
-                string problem = problems [i];
+                string problem = problems[i];
                 if (!problem.EndsWith("_tgt.mdl"))
                 {
                     continue;
@@ -188,13 +189,15 @@ public class Runner : MonoBehaviour
                     }
                 }
             }
-        } catch (System.Exception e)
+        }
+        catch (System.Exception e)
         {
             Debug.LogError(e);
-        } finally
+        }
+        finally
         {
             UnityEditor.EditorUtility.ClearProgressBar();
         }
     }
-    #endif
+#endif
 }

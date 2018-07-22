@@ -49,14 +49,14 @@ public class Bot
         var child = new List<int>(seeds.Count - number - 1);
         for (int i = 1; i <= number; i++)
         {
-            parent.Add(seeds [i]);
+            parent.Add(seeds[i]);
         }
         for (int i = number + 1; i < seeds.Count; i++)
         {
-            child.Add(seeds [i]);
+            child.Add(seeds[i]);
         }
         seeds = parent;
-        return new Bot(seeds [0], pos + diff, child);
+        return new Bot(seeds[0], pos + diff, child);
     }
 
     public void Fusion(Bot secondary)

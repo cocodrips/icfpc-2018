@@ -35,7 +35,7 @@ public class AI
         {
             if (model(i))
             {
-                this.state [i] = ShouldFillId;
+                this.state[i] = ShouldFillId;
             }
         }
     }
@@ -51,7 +51,7 @@ public class AI
             {
                 if (((read >> j) & 1) != 0)
                 {
-                    this.state [i * 8 + j] = ShouldFillId;
+                    this.state[i * 8 + j] = ShouldFillId;
                 }
             }
         }
@@ -143,10 +143,12 @@ public class AI
         if (diff.x != 0 && diff.z != 0)
         {
             lmove(int3(diff.x, 0, 0), int3(0, 0, diff.z));
-        } else if (diff.x != 0)
+        }
+        else if (diff.x != 0)
         {
             smove(int3(diff.x, 0, 0));
-        } else if (diff.z != 0)
+        }
+        else if (diff.z != 0)
         {
             smove(int3(0, 0, diff.z));
         }
@@ -222,7 +224,7 @@ public class AI
     // Returns true if it should be filled and not marked yet.
     bool shouldFill(Int3Type pos)
     {
-        return isValid(pos) && state [posToIndex(pos)] == ShouldFillId;
+        return isValid(pos) && state[posToIndex(pos)] == ShouldFillId;
     }
 
     void flipIfPossible()
@@ -236,7 +238,8 @@ public class AI
             if (groundedGroupIndex < idToGroup.Count - 1)
             {
                 groundedGroupIndex++;
-            } else
+            }
+            else
             {
                 flip();
                 return;
@@ -253,18 +256,18 @@ public class AI
         }
         if (pos.y == 0)
         {
-            state [posToIndex(pos)] = GroundId;
+            state[posToIndex(pos)] = GroundId;
             return;
         }
         int minNonZero = idToGroup.Count;
         for (int i = 0; i < neighbor.Length; i++)
         {
-            Int3Type x = pos + neighbor [i];
+            Int3Type x = pos + neighbor[i];
             if (!isValid(x))
             {
                 continue;
             }
-            int id = unionFind(state [posToIndex(x)]);
+            int id = unionFind(state[posToIndex(x)]);
             if (id <= 0)
             {
                 continue;
@@ -274,36 +277,38 @@ public class AI
         if (minNonZero == idToGroup.Count)
         {
             idToGroup.Add(minNonZero);
-        } else
+        }
+        else
         {
             for (int i = 0; i < neighbor.Length; i++)
             {
-                int id = unionFind(pos + neighbor [i]);
-                if (id > 0 && idToGroup [id] > 0)
+                int id = unionFind(pos + neighbor[i]);
+                if (id > 0 && idToGroup[id] > 0)
                 {
-                    idToGroup [id] = Math.Min(idToGroup [id], minNonZero);
+                    idToGroup[id] = Math.Min(idToGroup[id], minNonZero);
                 }
             }
         }
-        state [posToIndex(pos)] = minNonZero;
+        state[posToIndex(pos)] = minNonZero;
     }
 
     int unionFind(int id)
     {
-        if (id < 0 || idToGroup [id] == id)
+        if (id < 0 || idToGroup[id] == id)
         {
             return id;
-        } else
+        }
+        else
         {
-            int newId = unionFind(idToGroup [id]);
-            idToGroup [id] = newId;
+            int newId = unionFind(idToGroup[id]);
+            idToGroup[id] = newId;
             return newId;
         }
     }
 
     int unionFind(Int3Type pos)
     {
-        return isValid(pos) ? unionFind(state [posToIndex(pos)]) : 0;
+        return isValid(pos) ? unionFind(state[posToIndex(pos)]) : 0;
     }
 
     bool isGround(Int3Type pos)
