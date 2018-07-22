@@ -5,6 +5,8 @@
   <meta name="viewport"
         content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"/>
   <title>Score Board</title>
+  
+
   <link rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -44,6 +46,9 @@
 
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
+
+      
+    
       <div class="siimple-table siimple-table--striped">
         <div class="siimple-table-header">
           <div class="siimple-table-row">
@@ -55,13 +60,15 @@
           </div>
         </div>
 
+      
 
         <div class="siimple-table-body">
           {% for prob in problems %}
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
-              <div
-                  class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
+              <div class="siimple-table-cell"> 
+                {{ format_number(board_scores[prob]) }}
+              </div>
               {% for ai in ai_names %}
                 <div class="siimple-table-cell
                             {% if scores[ai][prob] and scores[ai][prob]['energy'] == highest[prob] %}
