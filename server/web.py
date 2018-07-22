@@ -171,7 +171,6 @@ def get_latest_scores(_type):
 
 @app.route("/add", methods=['POST'])
 def add_data():
-    print(request.data)
     f = request.files.get('nbt')
     u_name = request.form.get('user')
     ai_name = request.form.get('ai')
@@ -187,27 +186,20 @@ def add_data():
 
     fpath = '/data/{}.nbt'.format(score.id)
     f.save(fpath)
-    cmd = "/usr/local/bin/node score.js {2}{0:03d} {1}".format(
+
+    cmd = "/usr/local/bin/aws s3 cp {3} s3://icfpc-udon-2018/nbt/{0}{1:03d}_{2}.nbt".format(
+        game_type,
         problem,
-        fpath, game_type
+        score.id, fpath
     )
-    print(cmd)
-    proc = subprocess.Popen(cmd.split(' '),
-                            cwd="../simulator",
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # try:
+    proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
     proc.wait()
-    outs = proc.stdout.read()
     errs = proc.stderr.read()
 
     if proc.returncode != 0:
         return errs
 
-    output = json.loads(outs.decode('utf-8'))
-    score.energy = output['energy']
-    score.commands = output['commands']
-    score.spent_time = output['time']
-    db.session.commit()
     return str(score.id)
 
 
@@ -220,8 +212,8 @@ def update_score(_id):
     score.spent_time = data['time']
     db.session.commit()
     return "OK"
-    
-    
+
+
 @app.route("/data/<sid>", methods=['GET'])
 def get_data(sid):
     score = Score.query.filter_by(id=sid).first()
@@ -237,32 +229,34 @@ def get_data(sid):
 @app.route("/submission", methods=['GET'])
 def get_submission():
     result = db.engine.execute('''
-        SELECT
-          s.id,
-          s.problem
-        FROM (SELECT
-                u_name,
-                ai_name,
-                problem,
-                min(energy) AS score_min
-              FROM score
-              WHERE energy > 0
-              GROUP BY u_name,
-                ai_name,
-                problem) latest
-          LEFT JOIN score s
-            ON latest.u_name = s.u_name
-               AND latest.ai_name = s.ai_name
-               AND latest.problem = s.problem
-               AND latest.score_min = s.energy;
-        ''')
+    SELECT
+  min(id) as id_,
+  problem,
+  game_type
+FROM (SELECT
+        id,
+        problem,
+        game_type,
+        rank()
+        OVER (
+          PARTITION BY (problem, game_type)
+          ORDER BY
+            energy ASC ) AS rank
+      FROM score
+      WHERE energy > 0) t
+WHERE rank = 1 AND game_type NOT LIKE 'LA'
+GROUP BY (game_type, problem);
+''')
 
     with tempfile.TemporaryDirectory() as temp_dir:
         for row in result:
-            fid = row['id']
+            fid = row['id_']
             problem = row['problem']
+            game_type = row['game_type']
             shutil.copyfile('/data/{}.nbt'.format(fid),
-                            '{0}/LA{1:03d}.nbt'.format(temp_dir, problem))
+                            '{0}/{2}{1:03d}.nbt'.format(temp_dir,
+                                                        problem,
+                                                        game_type))
         zip_filename = '{}/submission.zip'.format(temp_dir)
         subprocess.call(
             'zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(
@@ -276,5 +270,4 @@ if __name__ == '__main__':
         host=os.environ.get('FLASK_HOST', '0.0.0.0'),
         port=int(os.environ.get('FLASK_PORT', 5050)),
         debug=bool(os.environ.get('FLASK_DEBUG', 1)),
-        # processes=10,
     )
