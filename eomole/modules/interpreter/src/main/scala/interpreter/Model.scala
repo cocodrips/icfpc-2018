@@ -6,7 +6,11 @@ import scala.collection.BitSet
 
 @Lenses
 case class Model(R: Int, bitset: BitSet) {
-  def get(pos: Pos): Boolean = bitset(pos.x * R * R + pos.y * R + pos.z)
+  def get(pos: Pos): Boolean =
+    if (pos.x < 0 || R <= pos.x || pos.y < 0 || R <= pos.y || pos.z < 0 || R <= pos.z)
+      false
+    else
+      bitset(pos.x * R * R + pos.y * R + pos.z)
 
   def add(pos: Pos): Model =
     copy(bitset = bitset + (pos.x * R * R + pos.y * R + pos.z))
@@ -24,4 +28,6 @@ object Model {
       }
       new Model(head & 255, bitset.result())
   }
+
+  def empty(R: Int): Model = Model(R, BitSet())
 }
