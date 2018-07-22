@@ -6,7 +6,7 @@ import monocle.macros.Lenses
 case class State(R: Int, energy: Long, harmonicsHigh: Boolean, matrix: Model, bots: IndexedSeq[Nanobot], trace: IndexedSeq[Command])
 
 @Lenses
-case class Nanobot(bid: Int, pos: Pos, seeds: Seq[Int], removed: Boolean = false)
+case class Nanobot(bid: Int, pos: Pos, seeds: Seq[Int])
 
 object Nanobot {
   implicit val ordering: Ordering[Nanobot] = Ordering.by(_.bid)

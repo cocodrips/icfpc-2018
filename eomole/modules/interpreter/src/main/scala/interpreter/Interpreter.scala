@@ -15,11 +15,11 @@ object Interpreter {
     )
     var i = 0
     while (!halted(s)) {
-      sys.process.stderr.println((i, s.copy(trace = s.trace.headOption.toIndexedSeq, matrix = s.matrix.copy(bitset = BitSet()))).toString)
+      sys.process.stderr.println(i, s.copy(trace = s.trace.headOption.toIndexedSeq, matrix = s.matrix.copy(bitset = BitSet())))
       s = move(s)
       i += 1
     }
-    println(i, s.energy)
+    sys.process.stderr.println(i, s.energy)
     s
   }
 
@@ -27,19 +27,17 @@ object Interpreter {
 
   def move(previous: State): State = {
     val n = previous.bots.size
-    val commands = (previous.bots, previous.trace.take(n)).zipped.toIndexedSeq.zipWithIndex
+    val commands = (previous.bots.zipWithIndex, previous.trace.take(n)).zipped.toSeq
     val singletons: State => State = commands.collect({
-      case ((bot, command: SingletonCommand), idx) => singletonCommand(idx, bot, command)
+      case ((bot, idx), command: SingletonCommand) => singletonCommand(idx, bot, command)
     }).reduceOption(_ andThen _).getOrElse(identity[State])
-    val fusions = commands.collect {
-      case t@((_, command: FusionCommand), _) => t
-    }
-    val gfills = commands.collect {
-      case t@((_, command: FusionCommand), _) => t
-    }
+    val fusionPs = commands.filter(_._2.isInstanceOf[Command.FusionP])
+    val fusionSs = commands.filter(_._2.isInstanceOf[Command.FusionS])
+    val gfills = commands.filter(_._2.isInstanceOf[Command.GFill])
+    val gvoids = commands.filter(_._2.isInstanceOf[Command.GVoid])
     //    val
     // TODO: fusion, gfills, gvoids
-    (turnStart andThen singletons andThen turnEnd(n)) (previous)
+    (turnStart andThen singletons andThen fusion(fusionPs, fusionSs) andThen turnEnd(n)) (previous)
   }
 
   private val turnStart: State => State = state => state.copy(
@@ -49,9 +47,25 @@ object Interpreter {
   )
 
   private def turnEnd(n: Int): State => State = state => state.copy(
-    bots = state.bots.sorted,
+    bots = state.bots.filterNot(_ == null).sorted,
     trace = state.trace.drop(n)
   )
+
+  private def fusion(ps: Seq[((Nanobot, Int), Command)], ss: Seq[((Nanobot, Int), Command)]): State => State = {
+    require(ps.size == ss.size)
+    val pairs = for {
+      ((botP, idxP), Command.FusionP(ndP)) <- ps
+      ((botS, idxS), Command.FusionS(ndS)) <- ss
+      if botP.pos.move(ndP.dx, ndP.dy, ndP.dz) == botS.pos && botS.pos.move(ndS.dx, ndS.dy, ndS.dz) == botP.pos
+    } yield {
+      State.energy.modify(_ - 24) andThen State.bots.modify(_
+        .updated(idxP, botP.copy(seeds = Seq(botP.seeds, Seq(botS.bid), botS.seeds).flatten.sorted))
+        .updated(idxS, null)
+      )
+    }
+    require(pairs.size == ps.size)
+    pairs.reduceOption(_ andThen _).getOrElse(identity[State])
+  }
 
   // TODO: harmonicsの値などのチェックは
   //  private def botMove(bots: Seq[(Nanobot, Int)], state: State): State = bots match {

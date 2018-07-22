@@ -65,12 +65,6 @@ sealed trait Command
 
 sealed trait SingletonCommand extends Command
 
-sealed trait FusionCommand extends Command
-
-sealed trait GFillCommand extends Command
-
-sealed trait GVoidCommand extends Command
-
 object Command {
 
   case object Halt extends SingletonCommand
@@ -86,10 +80,10 @@ object Command {
   case class LMove(sld1: SLD, sld2: SLD) extends SingletonCommand
 
   @Lenses
-  case class FusionP(nd: ND) extends FusionCommand
+  case class FusionP(nd: ND) extends Command
 
   @Lenses
-  case class FusionS(nd: ND) extends FusionCommand
+  case class FusionS(nd: ND) extends Command
 
   @Lenses
   case class Fission(nd: ND, m: Int) extends SingletonCommand {
@@ -103,9 +97,9 @@ object Command {
   case class Void(nd: ND) extends SingletonCommand
 
   @Lenses
-  case class GFill(nd: ND, fd: FD) extends GFillCommand
+  case class GFill(nd: ND, fd: FD) extends Command
 
   @Lenses
-  case class GVoid(nd: ND, fd: FD) extends GVoidCommand
+  case class GVoid(nd: ND, fd: FD) extends Command
 
 }
