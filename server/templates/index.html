@@ -11,21 +11,36 @@
 <body>
 <div class="siimple-navbar siimple-navbar--extra-large siimple-navbar--primary">
   <div class="siimple-navbar-title">udon</div>
-  <div class="siimple--float-right"><a class="siimple-navbar-item" href="/">Score
-    Board</a><a class="siimple-navbar-item" href="/">Simulator</a></div>
+  <div class="siimple--float-right">
+    <a class="siimple-navbar-item" href="/scoreboard/LA">LA</a>
+    <a class="siimple-navbar-item" href="/scoreboard/FA">FA</a>
+    <a class="siimple-navbar-item" href="/scoreboard/FD">FD</a>
+    <a class="siimple-navbar-item" href="/scoreboard/FR">FR</a>
+    <a class="siimple-navbar-item" href="/submission">ベストスコアのDL</a></div>
 </div>
+
+{#{{ sum_scores }}#}
 <div class="siimple-content siimple-content--extra-large">
 
-  <div class="siimple-grid-row">
-    <div class="siimple-grid-col siimple-grid-col--12">
-      {% for ai in ai_names %}
-        <div class="simmple-checkbox">
-          <input type="checkbox" id="checkfor{{ ai }}" checked="checked"/>
-          <label for="checkfor{{ ai }}">{{ ai }}</label>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
+{#  <div class="siimple-grid-row">#}
+{#    <div class="siimple-grid-col siimple-grid-col--12">#}
+{#      <form method="get">#}
+{#        <div class="siimple--float-left">#}
+{#          {% for ai in ai_names %}#}
+{#            <div class="simmple-checkbox">#}
+{#              <input type="checkbox" name="ai" id="{{ ai }}" value="{{ ai }}"#}
+{#                     checked="checked"/>#}
+{#              <label for="{{ ai }}">{{ ai }}</label>#}
+{#            </div>#}
+{#          {% endfor %}#}
+{#        </div>#}
+{#        <div class="siimple--float-right">#}
+{#          <input class="siimple-btn siimple-btn--error" type="submit"#}
+{#                 value="Submit"/>#}
+{#        </div>#}
+{#      </form>#}
+{#    </div>#}
+{#  </div>#}
 
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
@@ -45,13 +60,18 @@
           {% for prob in problems %}
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
-              <div class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
+              <div
+                  class="siimple-table-cell"> {{ format_number(highest[prob]) }}</div>
               {% for ai in ai_names %}
                 <div class="siimple-table-cell
-                            {% if scores[ai][prob] == highest[prob] %}
+                            {% if scores[ai][prob] and scores[ai][prob]['energy'] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
-                            ">{{ format_number(scores[ai][prob]) }}</div>
+                            ">
+                  {% if prob in scores[ai] %}
+                    {{ format_number(scores[ai][prob]['energy']) }}
+                  {% endif %}
+                </div>
               {% endfor %}
             </div>
           {% endfor %}

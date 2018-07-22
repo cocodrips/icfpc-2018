@@ -4,13 +4,15 @@ import io
 import json
 import subprocess
 import numbers
-from flask import Flask, request, abort, send_file, render_template
+from flask import Flask, request, abort, send_file, render_template, redirect
 from sqlalchemy.sql import text
-import zipfile
 from flask_sqlalchemy import SQLAlchemy
 from sys import platform
-
+import tempfile
+import shutil
 import locale
+import queries
+import datetime
 
 if platform == "linux" or platform == "linux2":
     locale.setlocale(locale.LC_NUMERIC, 'ja_JP.utf8')
@@ -22,6 +24,7 @@ app.config[
     'SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:root@localhost:{}/icfpc'.format(
     os.environ.get('PSQL_PORT', 5432)
 )
+app.config['TEAM_ID'] = '9364648f7acd496a948fba7c76a10501'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
@@ -36,6 +39,7 @@ class Score(db.Model):
     commands = db.Column(db.Integer, default=-10)
     spent_time = db.Column(db.Integer, default=-10)
     create_at = db.Column(db.DateTime, default=db.func.now())
+    game_type = db.Column(db.String(10), default='LA')
 
 
 @app.context_processor
@@ -58,67 +62,58 @@ def init_db():
 
 
 @app.route("/")
-def hello():
-    return "Score server"
+def _index():
+    return _scoreboard('LA')
 
-
-@app.route("/scoreboard")
-def _scoreboard():
-    problems, ai_names, highest, scores = get_latest_scores()
+@app.route("/scoreboard/<_type>")
+def _scoreboard(_type):
+    problems, ai_names, highest, scores, sum_scores = get_latest_scores(_type)
     return render_template('index.html',
                            problems=problems,
                            ai_names=ai_names,
                            highest=highest,
-                           scores=scores)
+                           scores=scores,
+                           sum_scores=sum_scores)
 
 
-def get_latest_scores():
+def get_latest_scores(_type):
     '''現在のスコアを取得する'''
-    sql = """
-SELECT
-  s.u_name,
-  s.ai_name,
-  s.energy,
-  s.problem,
-  s.commands,
-  s.spent_time,
-  s.create_at
-FROM (SELECT
-        u_name,
-        ai_name,
-        problem,
-        min(create_at) AS create_min
-      FROM score
-      WHERE energy > 0 
-      GROUP BY u_name,
-        ai_name,
-        problem) latest
-  LEFT JOIN score s
-    ON latest.u_name = s.u_name
-       AND latest.ai_name = s.ai_name
-       AND latest.problem = s.problem
-       AND latest.create_min = s.create_at;
-"""
-
+    sql = queries.query_latest_scores.format(game_type=_type)
     results = db.engine.execute(text(sql))
     scores = collections.defaultdict(dict)
 
     problems = set()
-    ai_names = set()
+    ai_names = {}
     highest = {}
 
     for _result in results:
         ai_name = _result['ai_name']
         problem = _result['problem']
         enery = _result['energy']
-        scores[ai_name][problem] = enery
-        ai_names.add(ai_name)
+        create_at = _result['create_at']
+        scores[ai_name][problem] = {
+            'energy': _result['energy'],
+            'create_at': _result['create_at'],
+        }
+
+        ai_names.setdefault(ai_name, datetime.datetime.now())
+        ai_names[ai_name] = min(ai_names[ai_name], create_at)
         problems.add(problem)
         if highest.get(problem):
             highest[problem] = min(enery, highest[problem])
         else:
             highest[problem] = enery
-    return sorted(list(problems)), ai_names, highest, scores
+    ai_names = [a for t, a in
+                sorted([(time, ai) for ai, time in ai_names.items()],
+                       reverse=True)]
+
+    sql = queries.query_sum_score
+    results = db.engine.execute(text(sql))
+    sum_scores = collections.defaultdict(list)
+    for result in results:
+        sum_scores[result['u_name']].append(
+            (result['time_at'], result['ai_name'], result['score']))
+    return sorted(list(problems)), ai_names, highest, scores, sum_scores
 
 
 @app.route("/add", methods=['POST'])
@@ -128,20 +123,22 @@ def add_data():
     u_name = request.form.get('user')
     ai_name = request.form.get('ai')
     problem = int(request.form.get('problem'))
+    game_type = request.form.get('type')
     if not u_name or not ai_name or not problem:
         abort(500)
 
-    score = Score(u_name=u_name, ai_name=ai_name, problem=problem)
+    score = Score(u_name=u_name, ai_name=ai_name, 
+                  problem=problem, game_type=game_type)
     db.session.add(score)
     db.session.commit()
 
     fpath = '/data/{}.nbt'.format(score.id)
     f.save(fpath)
-    cmd = "/usr/bin/node score.js ../data/problemsL/LA{0:03d}_tgt.mdl {1}".format(
+    cmd = "/usr/local/bin/node score.js {2}{0:03d} {1}".format(
         problem,
-        fpath
+        fpath, game_type
     )
-
+    print(cmd)
     proc = subprocess.Popen(cmd.split(' '),
                             cwd="../simulator",
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -172,6 +169,7 @@ def get_data(sid):
                      attachment_filename=fname,
                      mimetype='application/octet-stream')
 
+
 @app.route("/submission", methods=['GET'])
 def get_submission():
     result = db.engine.execute('''
@@ -195,18 +193,19 @@ def get_submission():
                AND latest.score_min = s.energy;
         ''')
 
-    memory_file = io.BytesIO()
-    with zipfile.ZipFile(memory_file, 'w') as zf:
-        zf.setpassword('9364648f7acd496a948fba7c76a10501')
+    with tempfile.TemporaryDirectory() as temp_dir:
         for row in result:
             fid = row['id']
             problem = row['problem']
-            data = zipfile.ZipInfo(filename="LA{0:03d}.nbt".format(problem))
-            data.compress_type = zipfile.ZIP_DEFLATED
-            with open('/data/{}.nbt'.format(fid), 'rb') as f:
-                zf.writestr(data, f.read())
-    memory_file.seek(0)
-    return send_file(memory_file, attachment_filename='submission.zip', as_attachment=True)
+            shutil.copyfile('/data/{}.nbt'.format(fid),
+                            '{0}/LA{1:03d}.nbt'.format(temp_dir, problem))
+        zip_filename = '{}/submission.zip'.format(temp_dir)
+        subprocess.call(
+            'zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(
+                zip_filename), shell=True, cwd=temp_dir);
+        return send_file(zip_filename, attachment_filename='submission.zip',
+                         as_attachment=True)
+
 
 if __name__ == '__main__':
     app.run(
