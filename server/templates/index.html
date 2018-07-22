@@ -57,8 +57,6 @@
 
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
-
-      
     
       <div class="siimple-table siimple-table--striped">
         <div class="siimple-table-header">
@@ -78,7 +76,9 @@
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
               <div class="siimple-table-cell"> 
-                {{ format_number(board_scores[prob]) }}
+                {% if board_scores[prob] %}
+                {{ format_number(board_scores[prob]) }}({{ (board_scores[prob] * 100 / highest[prob]) | round(0, 'floor') }}%)
+                {% endif %}
               </div>
               {% for ai in ai_names %}
                 <div class="siimple-table-cell
