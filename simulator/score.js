@@ -8,14 +8,15 @@ if (process.argv.length < 4) {
   process.exit(1);
 }
 
-const modelFile = process.argv[2];
-try {
-  fs.statSync(modelFile);
-} catch (e) {
-  console.error('モデルファイルが存在しません');
-  process.exit(1);
-}
+// Usage:
+//   node score.js FA001 nbt_file
+//
+//   LA001: target only
+//   FA001: target only
+//   FD001: source only
+//   FR001: target and source
 
+const problemName = process.argv[2];
 const traceFile = process.argv[3];
 try {
   fs.statSync(traceFile);
@@ -24,22 +25,42 @@ try {
   process.exit(1);
 }
 
+const problemType = problemName.substr(0, 2);
+const problemNum = problemName.substr(2);
+
 (async () => {
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-web-security']
+    args: ['--no-sandbox', '--disable-web-security', '--disable-setuid-sandbox']
   });
   const page = await browser.newPage();
 
-  await page.goto(`file:${path.join(__dirname, 'exec-trace-novis.html')}`);
+  await page.goto(`file:${path.join(__dirname, 'exec-trace-novis-full.html')}`);
 
-  const modelInput = await page.$('#tgtModelFileIn');
+  if (['LA', 'FA'].includes(problemType)) {
+    const modelInput = await page.$('#tgtModelFileIn');
+    const modelFile = `/data/${problemName}_tgt.mdl`;
+    await modelInput.uploadFile(modelFile);
+    await page.click('#srcModelEmpty');
+  } else if (problemType === 'FD') {
+    const modelInput = await page.$('#srcModelFileIn');
+    const modelFile = `/data/${problemName}_src.mdl`;
+    await modelInput.uploadFile(modelFile);
+    await page.click('#tgtModelEmpty');
+  } else {
+    // FR
+    const targetInput = await page.$('#tgtModelFileIn');
+    const targetFile = `/data/${problemName}_tgt.mdl`;
+    await targetInput.uploadFile(targetFile);
+    const sourceInput = await page.$('#srcModelFileIn');
+    const sourceFile = `/data/${problemName}_src.mdl`;
+    await sourceFile.uploadFile(sourceFile);
+  }
+
   const traceInput = await page.$('#traceFileIn');
-
-  await modelInput.uploadFile(modelFile);
   await traceInput.uploadFile(traceFile);
 
-  await page.select('#stepsPerFrame', '1000000');
+  await page.select('#stepsPerFrame', '10000000');
   await page.click('#execTrace');
   const executionStart = Date.now();
 
