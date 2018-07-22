@@ -69,6 +69,9 @@ namespace Yuizumi.Icfpc2018
             if (!Matrix.AreEqual(state.Matrix, target)) {
                 throw new InvalidOperationException("Matrix does not match the target.");
             }
+            if (state.Bots.Count > 0) {
+                throw new InvalidOperationException("System has not been halted.");
+            }
 
             Console.WriteLine(state.Energy);
         }
