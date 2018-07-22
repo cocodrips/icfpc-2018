@@ -31,10 +31,12 @@ FROM (
                     ORDER BY
                       create_at DESC ) AS rank
                 FROM score
+                WHERE game_type LIKE '{game_type}'
                ) AS t1
           WHERE energy > 0
                 AND (problem <= 5 OR problem = 10 OR problem = 20)
                 AND rank = 1
+
           GROUP BY ai_name, u_name) AS t2
      ) AS t3
 WHERE cnt = 7

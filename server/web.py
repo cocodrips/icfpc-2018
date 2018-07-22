@@ -63,7 +63,7 @@ def init_db():
 
 @app.route("/")
 def _index():
-    return redirect('/scoreboard/LA')
+    return _scoreboard('LA')
 
 @app.route("/scoreboard/<_type>")
 def _scoreboard(_type):
@@ -123,7 +123,7 @@ def add_data():
     u_name = request.form.get('user')
     ai_name = request.form.get('ai')
     problem = int(request.form.get('problem'))
-    game_type = int(request.form.get('type'))
+    game_type = request.form.get('type')
     if not u_name or not ai_name or not problem:
         abort(500)
 
@@ -134,11 +134,11 @@ def add_data():
 
     fpath = '/data/{}.nbt'.format(score.id)
     f.save(fpath)
-    cmd = "/usr/bin/node score.js {}{0:03d} {1}".format(
+    cmd = "/usr/local/bin/node score.js {2}{0:03d} {1}".format(
         problem,
-        fpath
+        fpath, game_type
     )
-
+    print(cmd)
     proc = subprocess.Popen(cmd.split(' '),
                             cwd="../simulator",
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
