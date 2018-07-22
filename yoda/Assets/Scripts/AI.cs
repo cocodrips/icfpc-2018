@@ -269,6 +269,11 @@ public class AI
         }
     }
 
+    bool isFilled(Int3Type pos)
+    {
+        return isValid(pos) && state[posToIndex(pos)] >= GroundId;
+    }
+
     void markFill(Int3Type pos)
     {
         if (!isValid(pos))
