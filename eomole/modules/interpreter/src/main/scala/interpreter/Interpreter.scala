@@ -99,6 +99,13 @@ object Interpreter {
           matrix = state.matrix.add(filled),
           trace = state.trace.tail
         ))
+      case Command.Void(nd: ND) =>
+        val removed = bot.pos.move(nd.dx, nd.dy, nd.dz)
+        botMove(bots.tail, state.copy(
+          energy = state.energy + (if (state.matrix.get(removed)) -12 else 3),
+          matrix = state.matrix.del(removed),
+          trace = state.trace.tail
+        ))
     }
 
   }

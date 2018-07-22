@@ -7,6 +7,9 @@ case class Model(R: Int, bitset: BitSet) {
 
   def add(pos: Pos): Model =
     copy(bitset = bitset + (pos.x * R * R + pos.y * R + pos.z))
+
+  def del(pos: Pos): Model =
+    copy(bitset = bitset - (pos.x * R * R + pos.y * R + pos.z))
 }
 
 object Model {
