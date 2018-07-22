@@ -5,8 +5,8 @@
   <meta name="viewport"
         content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"/>
   <title>Score Board</title>
-  
-
+  <script src="{{ url_for('static', filename='js/c3-5.0.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/c3.min.js') }}"></script>
   <link rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -20,17 +20,6 @@
     <a class="siimple-navbar-item" href="/scoreboard/FR">FR</a>
     <a class="siimple-navbar-item" href="/submission">ベストスコアのDL</a></div>
 </div>
-
-{# {{ sum_scores }} #}
-
-{% for owner in sum_scores %}
-  <p><strong>OWNER:</strong> {{ owner }}</p>
-  {% for data in sum_scores[owner] %}
-    {% for i in data %}
-      <p>{{ i }}</p>
-    {% endfor %}
-  {% endfor %}
-{% endfor %}
 
 
 <div class="siimple-content siimple-content--extra-large">
@@ -55,6 +44,11 @@
 {#    </div>#}
 {#  </div>#}
 
+
+  <div class="siimple-grid-row">
+    <div id="chart"></div>
+  </div>
+
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
     
@@ -69,15 +63,13 @@
           </div>
         </div>
 
-      
-
         <div class="siimple-table-body">
           {% for prob in problems %}
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
               <div class="siimple-table-cell"> 
                 {% if board_scores[prob] %}
-                {{ format_number(board_scores[prob]) }}({{ (board_scores[prob] * 100 / highest[prob]) | round(0, 'floor') }}%)
+                {{ format_number(board_scores[prob]) }}({{ (board_scores[prob] * 100 / highest[prob]) | round(1, 'floor') }}%)
                 {% endif %}
               </div>
               {% for ai in ai_names %}
