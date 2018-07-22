@@ -14,6 +14,12 @@ object TraceEncoder {
 
   private def encode(nd: ND): Int = (nd.dx + 1) * 9 + (nd.dy + 1) * 3 + nd.dz + 1
 
+  private def encodeDx(fd: FD): Int = fd.dx + 30
+
+  private def encodeDy(fd: FD): Int = fd.dy + 30
+
+  private def encodeDz(fd: FD): Int = fd.dz + 30
+
   private def a(lld: LLD): Int = encode(lld.axis)
 
   private def i(sld: SLD): Int = sld.d + 5
@@ -38,6 +44,9 @@ object TraceEncoder {
     case Command.FusionS(nd) => Seq(b"110" | encode(nd) << 3)
     case Command.Fission(nd: ND, m: Int) => Seq(b"101" | encode(nd) << 3, m.toByte)
     case Command.Fill(nd: ND) => Seq(b"011" | encode(nd) << 3)
+    case Command.Void(nd: ND) => Seq(b"010" | encode(nd) << 3)
+    case Command.GFill(nd: ND, fd: FD) => Seq(b"001" | encode(nd) << 3, encodeDx(fd), encodeDy(fd), encodeDz(fd))
+    case Command.GVoid(nd: ND, fd: FD) => Seq(b"000" | encode(nd) << 3, encodeDx(fd), encodeDy(fd), encodeDz(fd))
   }.map(_.toByte)
 
 }

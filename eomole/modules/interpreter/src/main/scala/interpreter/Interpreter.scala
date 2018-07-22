@@ -4,6 +4,7 @@ import scala.collection.BitSet
 
 object Interpreter {
 
+  // TODO: 引数にinitial modelを取る
   def execute(R: Int, trace: Seq[Command]): State = {
     var s = State(
       R = R,
@@ -26,6 +27,7 @@ object Interpreter {
   def halted(state: State): Boolean = state.trace.isEmpty
 
   def move(state: State): State = {
+    // TODO: 順不同なので単体コマンドとグループコマンドを分けて動かして合成する
     val moved = botMove(state.bots.zipWithIndex, state.copy(
       energy = state.energy +
         state.bots.size * 20 +
@@ -34,6 +36,7 @@ object Interpreter {
     moved.copy(bots = moved.bots.filterNot(_.removed).sorted)
   }
 
+  // TODO: harmonicsの値などのチェックは
   private def botMove(bots: Seq[(Nanobot, Int)], state: State): State = bots match {
     case Nil => state
     case (bot, idx) +: tail => state.trace.head match {

@@ -46,28 +46,51 @@ case class ND(dx: Int, dy: Int, dz: Int) {
   def mlen: Int = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
 }
 
+case class FD(dx: Int, dy: Int, dz: Int) {
+  require(-30 <= dx && dx <= 30, s"$dx $dy $dz")
+  require(-30 <= dy && dy <= 30, s"$dx $dy $dz")
+  require(-30 <= dz && dz <= 30, s"$dx $dy $dz")
+  require(mlen >= 1, s"$dx $dy $dz")
+
+  def mlen: Int = Math.abs(dx) + Math.abs(dy) + Math.abs(dz)
+}
+
 sealed trait Command
+
+sealed trait SingletonCommand extends Command
+
+sealed trait FusionCommand extends Command
+
+sealed trait GFillCommand extends Command
+
+sealed trait GVoidCommand extends Command
 
 object Command {
 
-  case object Halt extends Command
+  case object Halt extends SingletonCommand
 
-  case object Wait extends Command
+  case object Wait extends SingletonCommand
 
-  case object Flip extends Command
+  case object Flip extends SingletonCommand
 
-  case class SMove(lld: LLD) extends Command
+  case class SMove(lld: LLD) extends SingletonCommand
 
-  case class LMove(sld1: SLD, sld2: SLD) extends Command
+  case class LMove(sld1: SLD, sld2: SLD) extends SingletonCommand
 
-  case class FusionP(nd: ND) extends Command
+  case class FusionP(nd: ND) extends FusionCommand
 
-  case class FusionS(nd: ND) extends Command
+  case class FusionS(nd: ND) extends FusionCommand
 
-  case class Fission(nd: ND, m: Int) extends Command {
+  case class Fission(nd: ND, m: Int) extends SingletonCommand {
     require(0 <= m && m <= 255)
   }
 
-  case class Fill(nd: ND) extends Command
+  case class Fill(nd: ND) extends SingletonCommand
+
+  case class Void(nd: ND) extends SingletonCommand
+
+  case class GFill(nd: ND, fd: FD) extends GFillCommand
+
+  case class GVoid(nd: ND, fd: FD) extends GVoidCommand
 
 }
