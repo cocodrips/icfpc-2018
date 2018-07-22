@@ -18,12 +18,19 @@
 
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
-      {% for ai in ai_names %}
-        <div class="simmple-checkbox">
-          <input type="checkbox" id="{{ ai }}" checked="checked"/>
-          <label for="{{ ai }}">{{ ai }}</label>
+      <form method="get">
+        <div class="siimple--float-left">
+          {% for ai in ai_names %}
+            <div class="simmple-checkbox">
+              <input type="checkbox" name="ai" id="{{ ai }}" value="{{ ai }}" checked="checked"/>
+              <label for="{{ ai }}">{{ ai }}</label>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+        <div class="siimple--float-right">
+          <input class="siimple-btn siimple-btn--error" type="submit" value="Submit"/>
+        </div>
+      </form>
     </div>
   </div>
 
