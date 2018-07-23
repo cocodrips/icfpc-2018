@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verify", "verify\Verify.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NbtTool", "nbttool\NbtTool.csproj", "{0B7D4478-87AD-4C71-B459-11B6FC08FD4A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Destroy", "destroy\Destroy.csproj", "{D9C03D3F-754D-484B-A81B-3B059E9AD397}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,5 +27,9 @@ Global
 		{0B7D4478-87AD-4C71-B459-11B6FC08FD4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B7D4478-87AD-4C71-B459-11B6FC08FD4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B7D4478-87AD-4C71-B459-11B6FC08FD4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9C03D3F-754D-484B-A81B-3B059E9AD397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9C03D3F-754D-484B-A81B-3B059E9AD397}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9C03D3F-754D-484B-A81B-3B059E9AD397}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9C03D3F-754D-484B-A81B-3B059E9AD397}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
