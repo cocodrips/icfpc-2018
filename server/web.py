@@ -178,8 +178,11 @@ def get_latest_scores(_type):
                 'id': _result['id'],
                 'energy': _result['energy'],
                 'create_at': _result['create_at'],
-                'message': _result['message']
+                'message': _result['message']    
             }
+            if _result['message'] and len(_result['message']) > 10:
+                scores[ai_name][problem]['message'] = _result['message'][:10]
+            
     ai_names = [a for t, a in
                 sorted([(time, ai) for ai, time in ai_names.items()],
                        reverse=True)]
