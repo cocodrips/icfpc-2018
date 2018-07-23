@@ -24,27 +24,6 @@
 
 <div class="siimple-content siimple-content--extra-large">
 
-  {#  <div class="siimple-grid-row">#}
-  {#    <div class="siimple-grid-col siimple-grid-col--12">#}
-  {#      <form method="get">#}
-  {#        <div class="siimple--float-left">#}
-  {#          {% for ai in ai_names %}#}
-  {#            <div class="simmple-checkbox">#}
-  {#              <input type="checkbox" name="ai" id="{{ ai }}" value="{{ ai }}"#}
-  {#                     checked="checked"/>#}
-  {#              <label for="{{ ai }}">{{ ai }}</label>#}
-  {#            </div>#}
-  {#          {% endfor %}#}
-  {#        </div>#}
-  {#        <div class="siimple--float-right">#}
-  {#          <input class="siimple-btn siimple-btn--error" type="submit"#}
-  {#                 value="Submit"/>#}
-  {#        </div>#}
-  {#      </form>#}
-  {#    </div>#}
-  {#  </div>#}
-
-
   <div class="siimple-grid-row">
     <div id="chart"></div>
   </div>
@@ -156,7 +135,14 @@
                             {% endif %}
                             ">
                   {% if prob in scores[ai] %}
-                    {{ format_number(scores[ai][prob]['energy']) }}
+                    {% if scores[ai][prob]['energy'] == 0 %}
+                      ERR
+                    {% elif scores[ai][prob]['energy'] == -10 %}
+                      -
+                    {% else %}
+                      {{ format_number(scores[ai][prob]['energy']) }}
+                      
+                    {% endif %}
                   {% endif %}
                 </div>
               {% endfor %}

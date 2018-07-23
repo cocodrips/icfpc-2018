@@ -54,6 +54,7 @@ WHERE cnt = (SELECT count(1)
 
 query_latest_scores ="""
 SELECT
+  s.id,
   s.u_name,
   s.ai_name,
   s.energy,
@@ -67,7 +68,7 @@ FROM (SELECT
         problem,
         max(create_at) AS create_min
       FROM score
-      WHERE energy > 0 and game_type LIKE '{game_type}'
+      WHERE game_type LIKE '{game_type}'
       GROUP BY u_name,
         ai_name,
         problem) latest

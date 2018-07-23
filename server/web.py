@@ -40,6 +40,7 @@ class Score(db.Model):
     spent_time = db.Column(db.Integer, default=-10)
     create_at = db.Column(db.DateTime, default=db.func.now())
     game_type = db.Column(db.String(10), default='LA')
+    message = db.Column(db.String(255))
 
 
 class LeaderBoardScore(db.Model):
@@ -150,6 +151,7 @@ def get_latest_scores(_type):
         enery = _result['energy']
         create_at = _result['create_at']
         scores[ai_name][problem] = {
+            'id': _result['id'],
             'energy': _result['energy'],
             'create_at': _result['create_at'],
         }
@@ -158,9 +160,11 @@ def get_latest_scores(_type):
         ai_names[ai_name] = min(ai_names[ai_name], create_at)
         problems.add(problem)
         if highest.get(problem):
-            highest[problem] = min(enery, highest[problem])
+            if enery > 0:
+                highest[problem] = min(enery, highest[problem])
         else:
-            highest[problem] = enery
+            if enery > 0:
+                highest[problem] = enery
     ai_names = [a for t, a in
                 sorted([(time, ai) for ai, time in ai_names.items()],
                        reverse=True)]
@@ -220,9 +224,13 @@ def add_data():
 def update_score(_id):
     score = Score.query.filter_by(id=_id).first()
     data = request.json
-    score.energy = data['energy']
-    score.commands = data['commands']
-    score.spent_time = data['time']
+    if data['energy']:
+        score.energy = data['energy']
+        score.commands = data['commands']
+        score.spent_time = data['time']
+    else:
+        score.energy = 0
+        score.message = data['message']
     db.session.commit()
     return "OK"
 
@@ -238,6 +246,12 @@ def get_data(sid):
                      attachment_filename=fname,
                      mimetype='application/octet-stream')
 
+
+@app.route("/simulate/<_id>", methods=['GET'])
+def simulate(_id):
+    return render_template('exec-trace.html',
+                           id=_id)
+    
 
 @app.route("/submission", methods=['GET'])
 def get_submission():
