@@ -1,0 +1,105 @@
+Fission <0,0,1> 3   # R0 → R1
+
+Wait
+SMove <0,0,14>
+
+Wait
+SMove <0,0,14>
+
+Fission <0,1,0> 1   # R0 → R5
+Fission <0,1,0> 1   # R1 → R2
+
+Wait
+Wait
+SMove <0,14,0>
+SMove <0,14,0>
+
+Wait
+Wait
+SMove <0,14,0>
+SMove <0,14,0>
+
+Fission <1,0,0> 0   # R0 → R7
+Fission <1,0,0> 0   # R1 → R4
+Fission <1,0,0> 0   # R2 → R3
+Fission <1,0,0> 0   # R5 → R6
+
+Wait
+Wait
+Wait
+SMove <14,0,0>
+SMove <14,0,0>
+Wait
+SMove <14,0,0>
+SMove <14,0,0>
+
+Wait
+Wait
+Wait
+SMove <14,0,0>
+SMove <14,0,0>
+Wait
+SMove <14,0,0>
+SMove <14,0,0>
+
+GVoid < 1, 0, 1> < 27, 29, 27>
+GVoid < 1, 0,-1> < 27, 29,-27>
+GVoid < 1, 0,-1> < 27,-29,-27>
+GVoid <-1, 0,-1> <-27,-29,-27>
+GVoid <-1, 0,-1> <-27, 29,-27>
+GVoid < 1, 0, 1> < 27,-29, 27>
+GVoid <-1, 0, 1> <-27,-29, 27>
+GVoid <-1, 0, 1> <-27, 29, 27>
+
+Wait
+Wait
+Wait
+SMove <-14,0,0>
+SMove <-14,0,0>
+Wait
+SMove <-14,0,0>
+SMove <-14,0,0>
+
+Wait
+Wait
+Wait
+SMove <-14,0,0>
+SMove <-14,0,0>
+Wait
+SMove <-14,0,0>
+SMove <-14,0,0>
+
+FusionP <1,0,0>
+FusionP <1,0,0>
+FusionP <1,0,0>
+FusionS <-1,0,0>
+FusionS <-1,0,0>
+FusionP <1,0,0>
+FusionS <-1,0,0>
+FusionS <-1,0,0>
+
+Wait
+Wait
+SMove <0,-14,0>
+SMove <0,-14,0>
+
+Wait
+Wait
+SMove <0,-14,0>
+SMove <0,-14,0>
+
+FusionP <0,1,0>
+FusionP <0,1,0>
+FusionS <0,-1,0>
+FusionS <0,-1,0>
+
+Wait
+SMove <0,0,-14>
+
+Wait
+SMove <0,0,-14>
+
+FusionP <0,0,1>
+FusionS <0,0,-1>
+
+Halt
