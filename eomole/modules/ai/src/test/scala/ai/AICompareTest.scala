@@ -7,7 +7,7 @@ import org.scalatest.FunSuite
 
 class AICompareTest extends FunSuite {
 
-  val baseline: AI = NearestLowAI
+  val baseline: AI = NearestEfficientAI
   val ais: Seq[AI] = Seq(NearestEfficientAI)
 
   for {

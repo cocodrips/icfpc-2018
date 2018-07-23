@@ -7,7 +7,7 @@ import org.scalatest.FunSuite
 
 class AIRunATest extends FunSuite {
 
-  val ais: Seq[AI] = Seq(NearestEfficientAI)
+  val ais: Seq[AI] = Seq(NearestEfficientAI, Fission4AI)
 
   for {
     i <- 1 to 186
