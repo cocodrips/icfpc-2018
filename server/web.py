@@ -282,9 +282,13 @@ def get_mdl(_type, _id):
         _type, int(_id)
     ))
 
-
 @app.route("/submission", methods=['GET'])
-def get_submission():
+def get_submission_no_name():
+    return get_submission('submission')
+
+
+@app.route("/submission/<name>", methods=['GET'])
+def get_submission(name):
     result = db.engine.execute('''
     SELECT
   min(id) as id_,
@@ -312,12 +316,15 @@ GROUP BY (game_type, problem);
             problem = row['problem']
             game_type = row['game_type']
             corrected.add((game_type, problem))
-            shutil.copyfile('/data/{}.nbt'.format(fid),
+            shutil.copyfile('/data2/data/{}.nbt'.format(fid),
                             '{0}/{2}{1:03d}.nbt'.format(temp_dir,
                                                         problem,
                                                         game_type))
         for game_type in ['FA', 'FD', 'FR']:
-            for problem in range(1, 187):
+            max_ = 186
+            if game_type == 'FR':
+                max_ = 116
+            for problem in range(1, max_):
                 if (game_type, problem) not in corrected:
                     print('Add default {}{:03d}'.format(game_type, problem))
                     shutil.copyfile(
@@ -331,7 +338,7 @@ GROUP BY (game_type, problem);
         subprocess.call(
             'zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(
                 zip_filename), shell=True, cwd=temp_dir);
-        return send_file(zip_filename, attachment_filename='submission.zip',
+        return send_file(zip_filename, attachment_filename='{}.zip'.format(name),
                          as_attachment=True)
 
 
