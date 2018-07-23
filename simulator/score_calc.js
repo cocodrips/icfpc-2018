@@ -1,6 +1,16 @@
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
 const path = require('path');
+
+function checkFile(filepath) {
+  try {
+    fs.statSync(filepath);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 exports.run = async (problemName, traceFile) => {
   const problemType = problemName.substr(0, 2);
@@ -17,20 +27,27 @@ exports.run = async (problemName, traceFile) => {
   if (['LA', 'FA'].includes(problemType)) {
     const modelInput = await page.$('#tgtModelFileIn');
     const modelFile = `./data/problems/${problemName}_tgt.mdl`;
+    fs.statSync(modelFile);
+
     await modelInput.uploadFile(modelFile);
     await page.click('#srcModelEmpty');
   } else if (problemType === 'FD') {
     const modelInput = await page.$('#srcModelFileIn');
     const modelFile = `./data/problems/${problemName}_src.mdl`;
+    fs.statSync(modelFile);
+
     await modelInput.uploadFile(modelFile);
     await page.click('#tgtModelEmpty');
   } else {
     // FR
     const targetInput = await page.$('#tgtModelFileIn');
     const targetFile = `./data/problems/${problemName}_tgt.mdl`;
+    fs.statSync(targetFile);
     await targetInput.uploadFile(targetFile);
+
     const sourceInput = await page.$('#srcModelFileIn');
     const sourceFile = `./data/problems/${problemName}_src.mdl`;
+    fs.statSync(sourceFile);
     await sourceInput.uploadFile(sourceFile);
   }
 
@@ -49,15 +66,14 @@ exports.run = async (problemName, traceFile) => {
     }
 
     if (content.startsWith('Failure::')) {
-      console.error(content);
       await browser.close();
-      process.exit(1);
+      throw new Error(content);
     }
 
     // 15分でタイムアウトする
-    if (Date.now() - executionStart > 15 * 60 * 1000) {
+    if (Date.now() - executionStart > 10 * 60 * 1000) {
       await browser.close();
-      process.exit(1);
+      throw new Error('timeout');
     }
 
     await sleep(100);
