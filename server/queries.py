@@ -30,11 +30,10 @@ FROM (
                     PARTITION BY (ai_name, u_name, problem)
                     ORDER BY
                       create_at DESC ) AS rank
-                FROM score
+                FROM (select * from score where energy > 0) t4
                 WHERE game_type LIKE '{game_type}'
                ) AS t1
-          WHERE energy > 0
-                AND problem IN (SELECT
+          WHERE problem IN (SELECT
                                   DISTINCT problem
                                 FROM board_score
                                 WHERE
