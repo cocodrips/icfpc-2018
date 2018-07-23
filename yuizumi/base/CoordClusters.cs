@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 namespace Yuizumi.Icfpc2018
 {
-    internal class CoordClusters
+    public class CoordClusters
     {
-        internal CoordClusters() {}
+        public CoordClusters() {}
 
         private readonly Dictionary<Coord, int> mCoordIds =
             new Dictionary<Coord, int>();
         private readonly List<int> mRoot = new List<int>() { 0 };
         private readonly List<int> mSize = new List<int>() { 1 };
 
-        internal int Count { get; private set; } = 1;
+        public int Count { get; private set; } = 1;
 
-        internal void Add(Coord c)
+        public void Add(Coord c)
         {
             int k = mRoot.Count;
             mCoordIds.Add(c, k);
@@ -24,7 +24,7 @@ namespace Yuizumi.Icfpc2018
             ++Count;
         }
 
-        internal void Unite(Coord c1, Coord c2)
+        public void Unite(Coord c1, Coord c2)
         {
             Unite(mCoordIds[c1], mCoordIds[c2]);
         }

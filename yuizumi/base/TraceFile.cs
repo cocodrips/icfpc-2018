@@ -26,7 +26,7 @@ namespace Yuizumi.Icfpc2018
         public static void Save(string filename, IEnumerable<Command> trace)
         {
             Requires.NotNull(filename, nameof(filename));
-            using (var stream = File.OpenWrite(filename))
+            using (var stream = File.Create(filename))
                 Save(stream, trace);
         }
 
