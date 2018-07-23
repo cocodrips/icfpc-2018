@@ -85,7 +85,7 @@ def update_leader_board():
     full_df = pd.read_csv(data_path / 'full_standings_live.csv')
     la_df = pd.read_csv(data_path / 'lgtn_standings_live.csv')
     _i = 0
-    for game_type in ['FA', 'LA', 'FD', 'FR']:
+    for game_type in ['FA', 'FD', 'FR']:
         df = full_df
         if game_type.startswith('L'):
             df = la_df
@@ -125,7 +125,7 @@ def _scoreboard(_type):
             1: best['score'],
             10: ten['score']
         }
-    return render_template('index.html',
+    return render_template('index.html',                    
                            problems=problems,
                            ai_names=ai_names,
                            highest=highest,
@@ -141,7 +141,8 @@ def get_latest_scores(_type):
     results = db.engine.execute(text(sql))
     scores = collections.defaultdict(dict)
 
-    problems = set()
+    problems = list(range(1, 116)) if _type == 'FR' else list(range(1,187))
+    
     ai_names = {}
     highest = {}
 
@@ -158,7 +159,6 @@ def get_latest_scores(_type):
 
         ai_names.setdefault(ai_name, datetime.datetime.now())
         ai_names[ai_name] = min(ai_names[ai_name], create_at)
-        problems.add(problem)
         if highest.get(problem):
             if enery > 0:
                 highest[problem] = min(enery, highest[problem])
@@ -198,7 +198,7 @@ def get_latest_scores(_type):
     for result in results:
         sum_scores[result['u_name']].append(
             (result['time_at'], result['ai_name'], result['score']))
-    return (sorted(list(problems)), ai_names, highest,
+    return (problems, ai_names, highest,
             scores, board_scores, sum_scores)
 
 
@@ -324,7 +324,7 @@ GROUP BY (game_type, problem);
                                                         problem,
                                                         game_type))
         for game_type in ['FA', 'FD', 'FR']:
-            max_ = 186
+            max_ = 187
             if game_type == 'FR':
                 max_ = 116
             for problem in range(1, max_):

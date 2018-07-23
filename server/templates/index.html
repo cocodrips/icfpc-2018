@@ -114,18 +114,23 @@
         </div>
 
         <div class="siimple-table-body">
+
           {% for prob in problems %}
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
               <div class="siimple-table-cell">
-                {% if board_scores[prob] %}
+                {% if prob in board_scores %}
                   {{ format_number(board_scores[prob][1]) }}
-                  ①
-                  {{ (board_scores[prob][1] * 100 / highest[prob]) | round(1, 'floor') }}
-                  %
-                  ⑩
-                  {{ (board_scores[prob][10] * 100 / highest[prob]) | round(1, 'floor') }}
-                  %
+
+                  {% if  prob in highest %}
+                    ①
+                    {{ (board_scores[prob][1] * 100 / highest[prob]) | round(1, 'floor') }}
+                    %
+                    ⑩
+                    {{ (board_scores[prob][10] * 100 / highest[prob]) | round(1, 'floor') }}
+                    %
+                  {% endif %}
+                  
                 {% endif %}
               </div>
               {% for ai in ai_names %}
