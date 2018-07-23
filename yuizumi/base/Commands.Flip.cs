@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Yuizumi.Icfpc2018
@@ -30,6 +31,22 @@ namespace Yuizumi.Icfpc2018
             }
 
             public override string ToString() => "Flip";
+        }
+
+        private class FlipDecoder : Decoder
+        {
+            internal override string Name => "Flip";
+
+            internal override int Arity => 0;
+
+            internal override bool CanDecode(int prefix)
+                => prefix == 0b11111101;
+
+            internal override Command Decode(int prefix, Func<int> nextByte)
+                => Commands.Flip();
+
+            internal override Command DecodeText(IReadOnlyList<string> args)
+                => Commands.Flip();
         }
     }
 }

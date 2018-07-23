@@ -11,6 +11,17 @@ $ dotnet msbuild
 
 ## Run
 
+### NbtTool
+
+Arguments can be `-` or omitted to use standard input/output.
+
+```
+$ dotnet verify/bin/Debug/netcoreapp2.0/NbtTool.dll decode FA001.nbt FA001.ntt
+$ dotnet verify/bin/Debug/netcoreapp2.0/NbtTool.dll encode FA001.ntt FA001.nbt
+```
+
+### Verify
+
 Verify.dll takes three arguments: your nbt, the source mdl, and the target mdl.
 `-` is interpreted as an empty model.
 

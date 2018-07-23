@@ -55,14 +55,12 @@ namespace Yuizumi.Icfpc2018
             var commands = new List<Command>();
             var state = new State(source);
 
-            using (Stream stream = new FileStream(args[0], FileMode.Open)) {
-                foreach (Command c in NbtFile.Load(stream)) {
-                    commands.Add(c);
-                    if (commands.Count == state.Bots.Count) {
-                        state.DoTurn(commands);
-                        if (state.Matrix.R <= MaxVerifyR) state.VerifyWellFormed();
-                        commands.Clear();
-                    }
+            foreach (Command c in TraceFile.Load(args[0])) {
+                commands.Add(c);
+                if (commands.Count == state.Bots.Count) {
+                    state.DoTurn(commands);
+                    if (state.Matrix.R <= MaxVerifyR) state.VerifyWellFormed();
+                    commands.Clear();
                 }
             }
 

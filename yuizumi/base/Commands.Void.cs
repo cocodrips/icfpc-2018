@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Yuizumi.Icfpc2018
@@ -44,6 +45,25 @@ namespace Yuizumi.Icfpc2018
             }
 
             public override string ToString() => $"Void {mNd}";
+        }
+
+        private class VoidDecoder : Decoder
+        {
+            internal override string Name => "Void";
+
+            internal override int Arity => 1;
+
+            internal override bool CanDecode(int prefix)
+                => (prefix & 0b00000111) == 0b00000010;
+
+            internal override Command Decode(int prefix, Func<int> nextByte)
+            {
+                Delta nd = DeltaDecoder.DecodeNd((prefix & 0b11111000) >> 3);
+                return Commands.Void(nd);
+            }
+
+            internal override Command DecodeText(IReadOnlyList<string> args)
+                => Commands.Void(Delta.Parse(args[0]));
         }
     }
 }
