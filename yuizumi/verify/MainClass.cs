@@ -40,26 +40,20 @@ namespace Yuizumi.Icfpc2018
             Matrix source = null;
             Matrix target = null;
 
-            if (args[1] != "-") {
-                using (Stream stream = new FileStream(args[1], FileMode.Open))
-                    source = ModelFile.Load(stream);
-            }
-            if (args[2] != "-") {
-                using (Stream stream = new FileStream(args[2], FileMode.Open))
-                    target = ModelFile.Load(stream);
-            }
-
-            if (source == null) source = new Matrix(target.R);
-            if (target == null) target = new Matrix(source.R);
+            if (args[1] != "-") source = ModelFile.Load(args[1]);
+            if (args[2] != "-") target = ModelFile.Load(args[2]);
+            if (source == null) source = Matrix.Empty(target.R);
+            if (target == null) target = Matrix.Empty(source.R);
 
             var commands = new List<Command>();
             var state = new State(source);
+
+            state.DoesAutoVerify = source.R <= MaxVerifyR;
 
             foreach (Command c in TraceFile.Load(args[0])) {
                 commands.Add(c);
                 if (commands.Count == state.Bots.Count) {
                     state.DoTurn(commands);
-                    if (state.Matrix.R <= MaxVerifyR) state.VerifyWellFormed();
                     commands.Clear();
                 }
             }

@@ -4,10 +4,16 @@ namespace Yuizumi.Icfpc2018
 {
     public static class ModelFile
     {
+        public static Matrix Load(string filename)
+        {
+            using (Stream stream = File.OpenRead(filename))
+                return Load(stream);
+        }
+
         public static Matrix Load(Stream stream)
         {
             int r = stream.StrictReadByte();
-            var matrix = new Matrix(r);
+            Matrix matrix = Matrix.Empty(r);
 
             var bytes = new byte[(r * r * r + 7) / 8];
             stream.Read(bytes, 0, bytes.Length);
