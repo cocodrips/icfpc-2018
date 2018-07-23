@@ -5,8 +5,8 @@
   <meta name="viewport"
         content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"/>
   <title>Score Board</title>
-  
-
+  <script src="{{ url_for('static', filename='js/c3-5.0.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/c3.min.js') }}"></script>
   <link rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -21,43 +21,87 @@
     <a class="siimple-navbar-item" href="/submission">ベストスコアのDL</a></div>
 </div>
 
-{# {{ sum_scores }} #}
-
-{% for owner in sum_scores %}
-  <p><strong>OWNER:</strong> {{ owner }}</p>
-  {% for data in sum_scores[owner] %}
-    {% for i in data %}
-      <p>{{ i }}</p>
-    {% endfor %}
-  {% endfor %}
-{% endfor %}
-
 
 <div class="siimple-content siimple-content--extra-large">
 
-{#  <div class="siimple-grid-row">#}
-{#    <div class="siimple-grid-col siimple-grid-col--12">#}
-{#      <form method="get">#}
-{#        <div class="siimple--float-left">#}
-{#          {% for ai in ai_names %}#}
-{#            <div class="simmple-checkbox">#}
-{#              <input type="checkbox" name="ai" id="{{ ai }}" value="{{ ai }}"#}
-{#                     checked="checked"/>#}
-{#              <label for="{{ ai }}">{{ ai }}</label>#}
-{#            </div>#}
-{#          {% endfor %}#}
-{#        </div>#}
-{#        <div class="siimple--float-right">#}
-{#          <input class="siimple-btn siimple-btn--error" type="submit"#}
-{#                 value="Submit"/>#}
-{#        </div>#}
-{#      </form>#}
-{#    </div>#}
-{#  </div>#}
+  <div class="siimple-grid-row">
+    <div id="chart"></div>
+  </div>
+
+  <script>
+      sum_scores = [];
+
+      {% for owner in sum_scores %}
+          sum_scores['{{owner}}_time'] = ['{{owner}}_time'];
+          sum_scores['{{owner}}_data'] = ['{{owner}}_data'];
+          {% for data in sum_scores[owner] %}
+              sum_scores['{{owner}}_time'].push('{{data[0]}}'.substr(0, 19));
+              sum_scores['{{owner}}_data'].push({{data[2]}});
+          {% endfor %}
+      {% endfor %}
+
+      sum_scores_xs = {};
+      {% for owner in sum_scores %}
+          sum_scores_xs['{{owner}}_data'] = '{{owner}}_time';
+      {% endfor %}
+
+      var data = {};
+      data.xs = sum_scores_xs;
+      data.xFormat = '%Y-%m-%d %H:%M:%S';
+      data.columns = [];
+
+      var axis = {
+          x: {
+              type: 'timeseries',
+              tick: {
+                  format: '%d %H:%M'
+              }
+          },
+          y: {
+              tick: {
+                  format: d3.format(",")
+              },
+              min: 0,
+              padding: {bottom: 0}
+          }
+      };
+
+      for (var sum_score in sum_scores) {
+          data.columns.push(sum_scores[sum_score]);
+      }
+      ;
+      generate = {
+          data: data,
+          axis: axis,
+          grid: {
+              y: {
+                  show: true,
+                  lines: [
+                      {
+                          value: {{ board_score_sums[1] }},
+                          class: 'best-score',
+                          text: 'BEST SCORE'
+                      },
+                      {
+                          value: {{ board_score_sums[10] }},
+                          class: 'best-score',
+                          text: '10th SCORE'
+                      }
+                  ]
+              }
+          }
+      };
+      var chart = c3.generate(generate);
+  </script>
+
+
+  <div class="siimple-grid-row">
+    <div id="chart"></div>
+  </div>
 
   <div class="siimple-grid-row">
     <div class="siimple-grid-col siimple-grid-col--12">
-    
+
       <div class="siimple-table siimple-table--striped">
         <div class="siimple-table-header">
           <div class="siimple-table-row">
@@ -69,27 +113,52 @@
           </div>
         </div>
 
-      
-
         <div class="siimple-table-body">
+
           {% for prob in problems %}
             <div class="siimple-table-row">
               <div class="siimple-table-cell"> {{ prob }}</div>
-              <div class="siimple-table-cell"> 
-                {% if board_scores[prob] %}
-                {{ format_number(board_scores[prob]) }}({{ (board_scores[prob] * 100 / highest[prob]) | round(0, 'floor') }}%)
+              <div class="siimple-table-cell">
+                {% if prob in board_scores %}
+                  {{ format_number(board_scores[prob][1]) }}
+
+                  {% if  prob in highest %}
+                    ①
+                    {{ (board_scores[prob][1] * 100 / highest[prob]) | round(1, 'floor') }}
+                    %
+                    ⑩
+                    {{ (board_scores[prob][10] * 100 / highest[prob]) | round(1, 'floor') }}
+                    %
+                  {% endif %}
+                  
                 {% endif %}
               </div>
               {% for ai in ai_names %}
-                <div class="siimple-table-cell
+                {% if prob in scores[ai] %}
+                  <a href='/data/{{ scores[ai][prob]['id'] }}' class="siimple-table-cell
                             {% if scores[ai][prob] and scores[ai][prob]['energy'] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
                             ">
-                  {% if prob in scores[ai] %}
-                    {{ format_number(scores[ai][prob]['energy']) }}
-                  {% endif %}
-                </div>
+                    <!-- <a href="/"> -->
+
+                    {% if scores[ai][prob]['energy'] == 0 %}
+                      {% if scores[ai][prob]['message'] %}
+                        {{ scores[ai][prob]['message'] }}
+                      {% else %}
+                        ERR
+                      {% endif %}
+
+                    {% elif scores[ai][prob]['energy'] == -10 %}
+                      -
+                    {% else %}
+                      {{ format_number(scores[ai][prob]['energy']) }}
+
+                    {% endif %}
+                  </a>
+                {% else %}
+                  <div class="siimple-table-cell"></div>
+                {% endif %}
               {% endfor %}
             </div>
           {% endfor %}
