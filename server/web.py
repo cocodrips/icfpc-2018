@@ -174,7 +174,6 @@ def get_latest_scores(_type):
         problem = _result['problem']
         enery = _result['energy']
         if enery == -10 or (enery == 0 and problem not in scores[ai_name]):
-            print('failed', ai_name, problem)
             scores[ai_name][problem] = {
                 'id': _result['id'],
                 'energy': _result['energy'],
@@ -249,7 +248,8 @@ def update_score(_id):
         score.message = ''
     else:
         score.energy = 0
-        score.message = data['message']
+        if data['message']:
+            score.message = data['message'][:254]
     db.session.commit()
     return "OK"
 
