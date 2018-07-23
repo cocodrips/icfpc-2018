@@ -42,7 +42,8 @@ class State(object):
             self.bots.extend(self.newBots)
             self.bots.sort(key=lambda x: x.bid)
             self.index = 0
-            self.current.sort(key=lambda x:-x[0])
+            # TODO: Generalize this hack
+            self.current.sort(key=lambda x:50 if x[0] == 1 else x[0])
             self.commands.append("")
             self.commands.extend([x[1] + " # bid" + str(x[0]) for x in self.current])
             self.current = []
