@@ -240,7 +240,9 @@ def get_data(sid):
     score = Score.query.filter_by(id=sid).first()
     if not score:
         abort(500)
-    fname = "{}_prob{}.nbt".format(score.ai_name, score.problem)
+    fname = "{}_{}{:03d}.nbt".format(score.ai_name,
+                                     score.game_type,
+                                     score.problem)
     fpath = '/data/{}.nbt'.format(sid)
     return send_file(fpath, as_attachment=True,
                      attachment_filename=fname,
