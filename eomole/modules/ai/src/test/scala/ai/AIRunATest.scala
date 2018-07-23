@@ -7,13 +7,15 @@ import org.scalatest.FunSuite
 
 class AIRunATest extends FunSuite {
 
-  val ais: Seq[AI] = Seq(NearestLowAI)
+  val ais: Seq[AI] = Seq(NearestEfficientAI)
 
   for {
     i <- 1 to 186
     ai <- ais
   } {
     test("%sはF構築ができる FA%03d".format(ai.name, i)) {
+      if (!Files.exists(Paths.get("../data/%s".format(ai.name))))
+        Files.createDirectory(Paths.get("../data/%s".format(ai.name)))
       val targetL = Model.decode(Files.readAllBytes(Paths.get("../data/problems/LA%03d_tgt.mdl".format(i))))
       val targetF = Model.decode(Files.readAllBytes(Paths.get("../data/problems/FA%03d_tgt.mdl".format(i))))
       val source = Model.empty(targetF.R)
