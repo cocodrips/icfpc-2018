@@ -316,7 +316,7 @@ GROUP BY (game_type, problem);
             problem = row['problem']
             game_type = row['game_type']
             corrected.add((game_type, problem))
-            shutil.copyfile('/data2/data/{}.nbt'.format(fid),
+            shutil.copyfile('/data/{}.nbt'.format(fid),
                             '{0}/{2}{1:03d}.nbt'.format(temp_dir,
                                                         problem,
                                                         game_type))
