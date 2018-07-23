@@ -130,23 +130,28 @@
               </div>
               {% for ai in ai_names %}
                 {% if prob in scores[ai] %}
-                <a href='/data/{{ scores[ai][prob]['id'] }}' class="siimple-table-cell
+                  <a href='/data/{{ scores[ai][prob]['id'] }}' class="siimple-table-cell
                             {% if scores[ai][prob] and scores[ai][prob]['energy'] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
                             ">
-                            <!-- <a href="/"> -->
-                  
+                    <!-- <a href="/"> -->
+
                     {% if scores[ai][prob]['energy'] == 0 %}
-                      ERR
+                      {% if scores[ai][prob]['message'] %}
+                        {{ scores[ai][prob]['message'] }}
+                      {% else %}
+                        ERR
+                      {% endif %}
+
                     {% elif scores[ai][prob]['energy'] == -10 %}
                       -
                     {% else %}
                       {{ format_number(scores[ai][prob]['energy']) }}
-                      
+
                     {% endif %}
-                </a>
-                  {% else %}
+                  </a>
+                {% else %}
                   <div class="siimple-table-cell"></div>
                 {% endif %}
               {% endfor %}

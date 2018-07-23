@@ -52,31 +52,49 @@ WHERE cnt = (SELECT count(1)
                      AND game_type LIKE '{game_type}') t)
 """
 
-query_latest_scores ="""
+query_latest_scores = """
 SELECT
-  s.id,
-  s.u_name,
-  s.ai_name,
-  s.energy,
-  s.problem,
-  s.commands,
-  s.spent_time,
-  s.create_at
+  id,
+  u_name,
+  ai_name,
+  problem,
+  energy,
+  create_at,
+  game_type
 FROM (SELECT
-        u_name,
-        ai_name,
-        problem,
-        max(create_at) AS create_min
-      FROM score
-      WHERE game_type LIKE '{game_type}'
-      GROUP BY u_name,
-        ai_name,
-        problem) latest
-  LEFT JOIN score s
-    ON latest.u_name = s.u_name
-       AND latest.ai_name = s.ai_name
-       AND latest.problem = s.problem
-       AND latest.create_min = s.create_at;
+        *,
+        row_number()
+        OVER (
+          PARTITION BY (ai_name, u_name, problem)
+          ORDER BY (energy) ) AS rank
+      FROM (SELECT *
+            FROM score
+            WHERE energy > 0 AND game_type LIKE '{game_type}') t1
+     ) t2
+WHERE rank = 1;
+"""
+
+query_error_scores = """
+SELECT
+  id,
+  u_name,
+  ai_name,
+  problem,
+  energy,
+  create_at,
+  message
+FROM (SELECT
+        *,
+        row_number()
+        OVER (
+          PARTITION BY (ai_name, u_name, problem)
+          ORDER BY create_at DESC ) AS rank
+      FROM (SELECT *
+            FROM score
+            WHERE game_type LIKE '{game_type}') t1
+     ) t2
+WHERE rank = 1
+AND energy <= 0;
 """
 
 query_board_score = """

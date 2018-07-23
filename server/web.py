@@ -165,6 +165,22 @@ def get_latest_scores(_type):
         else:
             if enery > 0:
                 highest[problem] = enery
+
+    sql = queries.query_error_scores.format(game_type=_type)
+    results = db.engine.execute(text(sql))
+
+    for _result in results:
+        ai_name = _result['ai_name']
+        problem = _result['problem']
+        enery = _result['energy']
+        if enery == -10 or (enery == 0 and problem not in scores[ai_name]):
+            print('failed', ai_name, problem)
+            scores[ai_name][problem] = {
+                'id': _result['id'],
+                'energy': _result['energy'],
+                'create_at': _result['create_at'],
+                'message': _result['message']
+            }
     ai_names = [a for t, a in
                 sorted([(time, ai) for ai, time in ai_names.items()],
                        reverse=True)]
@@ -290,14 +306,27 @@ GROUP BY (game_type, problem);
 ''')
 
     with tempfile.TemporaryDirectory() as temp_dir:
+        corrected = set()
         for row in result:
             fid = row['id_']
             problem = row['problem']
             game_type = row['game_type']
+            corrected.add((game_type, problem))
             shutil.copyfile('/data/{}.nbt'.format(fid),
                             '{0}/{2}{1:03d}.nbt'.format(temp_dir,
                                                         problem,
                                                         game_type))
+        for game_type in ['FA', 'FD', 'FR']:
+            for problem in range(1, 187):
+                if (game_type, problem) not in corrected:
+                    print('Add default {}{:03d}'.format(game_type, problem))
+                    shutil.copyfile(
+                        '../data/dfltTraces/{}{:03d}.nbt'.format(game_type,
+                                                                 problem),
+                        '{0}/{2}{1:03d}.nbt'.format(temp_dir,
+                                                    problem,
+                                                    game_type))
+
         zip_filename = '{}/submission.zip'.format(temp_dir)
         subprocess.call(
             'zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(
