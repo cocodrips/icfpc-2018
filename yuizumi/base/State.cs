@@ -21,6 +21,8 @@ namespace Yuizumi.Icfpc2018
 
         private readonly List<Nanobot> mBots;
 
+        public bool DoesAutoVerify { get; set; } = true;
+
         public long Energy { get; internal set; }
 
         public Harmonics Harmonics { get; internal set; }
@@ -42,7 +44,7 @@ namespace Yuizumi.Icfpc2018
             mBots.Remove(bot);
         }
 
-        public void DoTurn(IReadOnlyList<Command> commands)
+        public virtual void DoTurn(IReadOnlyList<Command> commands)
         {
             Requires.State(mBots.Count > 0, "System has been halted.");
 
@@ -81,7 +83,15 @@ namespace Yuizumi.Icfpc2018
             foreach ((Nanobot bot, Command command) in assignments)
                 command.ApplyToState(this, bot);
 
-            // TODO(yuizumi): Ensure the sate is well-formed.
+            if (DoesAutoVerify) VerifyWellFormed();
+        }
+
+        public void VerifyWellFormed()
+        {
+            // TODO(yuizumi): Verify other conditions?
+            if (Harmonics == Low) {
+                Requires.State(Matrix.IsGrounded(), "Model is not grounded.");
+            }
         }
     }
 }

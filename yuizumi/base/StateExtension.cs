@@ -26,13 +26,5 @@ namespace Yuizumi.Icfpc2018
                 s.Energy += 3;
             }
         }
-
-        public static void VerifyWellFormed(this State s)
-        {
-            if (s.Harmonics == Low) {
-                Requires.State(s.Matrix.IsGrounded(), "Model is not grounded.");
-            }
-            // TODO(yuizumi): Verify other conditions?
-        }
     }
 }

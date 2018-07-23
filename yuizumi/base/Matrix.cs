@@ -2,7 +2,7 @@ namespace Yuizumi.Icfpc2018
 {
     public class Matrix
     {
-        public Matrix(int r)
+        private Matrix(int r)
         {
             mVoxels = new Voxel[r, r, r];
             R = r;
@@ -39,6 +39,9 @@ namespace Yuizumi.Icfpc2018
                 mVoxels[c.X, c.Y, c.Z] = value;
             }
         }
+
+        public static Matrix Empty(int r)
+            => new Matrix(r);
 
         public bool Contains(Coord c)
         {
