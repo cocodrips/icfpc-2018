@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -93,6 +94,26 @@ namespace Yuizumi.Icfpc2018
             }
 
             public override string ToString() => $"GVoid {mNd} {mFd}";
+        }
+
+        private class GVoidDecoder : Decoder
+        {
+            internal override string Name => "GVoid";
+
+            internal override int Arity => 2;
+
+            internal override bool CanDecode(int prefix)
+                => (prefix & 0b00000111) == 0b00000000;
+
+            internal override Command Decode(int prefix, Func<int> nextByte)
+            {
+                Delta nd = DeltaDecoder.DecodeNd((prefix & 0b11111000) >> 3);
+                Delta fd = DeltaDecoder.DecodeFd(nextByte(), nextByte(), nextByte());
+                return Commands.GVoid(nd, fd);
+            }
+
+            internal override Command DecodeText(IReadOnlyList<string> args)
+                => Commands.GVoid(Delta.Parse(args[0]), Delta.Parse(args[1]));
         }
     }
 }

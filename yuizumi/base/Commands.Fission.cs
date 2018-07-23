@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Yuizumi.Icfpc2018
@@ -51,6 +52,28 @@ namespace Yuizumi.Icfpc2018
             }
 
             public override string ToString() => $"Fission {mNd} {mM}";
+        }
+
+        private class FissionDecoder : Decoder
+        {
+            internal override string Name => "Fission";
+
+            internal override int Arity => 2;
+
+            internal override bool CanDecode(int prefix)
+            {
+                if (prefix == 0b11111101) return false;  // Flip
+                return (prefix & 0b00000111) == 0b00000101;
+            }
+
+            internal override Command Decode(int prefix, Func<int> nextByte)
+            {
+                Delta nd = DeltaDecoder.DecodeNd((prefix & 0b11111000) >> 3);
+                return Commands.Fission(nd, nextByte());
+            }
+
+            internal override Command DecodeText(IReadOnlyList<string> args)
+                => Commands.Fission(Delta.Parse(args[0]), Int32.Parse(args[1]));
         }
     }
 }

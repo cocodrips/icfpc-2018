@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace Yuizumi.Icfpc2018
 {
@@ -10,6 +11,8 @@ namespace Yuizumi.Icfpc2018
             DY = dy;
             DZ = dz;
         }
+
+        private static readonly Regex ParserRegex = GetParserRegex();
 
         public static Delta Zero => default(Delta);
 
@@ -47,6 +50,24 @@ namespace Yuizumi.Icfpc2018
         {
             Requires.Arg(d != 0, nameof(d), "Argument must be non-zero.");
             return new Delta(0, 0, d);
+        }
+
+        public static Delta Parse(string text)
+        {
+            Match match = ParserRegex.Match(text);
+            if (!match.Success) {
+                throw new FormatException();
+            }
+            int dx = Int32.Parse(match.Groups[1].Value);
+            int dy = Int32.Parse(match.Groups[2].Value);
+            int dz = Int32.Parse(match.Groups[3].Value);
+            return Delta.Of(dx, dy, dz);
+        }
+
+        private static Regex GetParserRegex()
+        {
+            string number = @"\s*(-?\d+)\s*";
+            return new Regex($"^<{number},{number},{number}>$");
         }
 
         public bool Equals(Delta that)

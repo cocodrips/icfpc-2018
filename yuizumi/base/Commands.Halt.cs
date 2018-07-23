@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Yuizumi.Icfpc2018
@@ -35,6 +36,22 @@ namespace Yuizumi.Icfpc2018
             }
 
             public override string ToString() => "Halt";
+        }
+
+        private class HaltDecoder : Decoder
+        {
+            internal override string Name => "Halt";
+
+            internal override int Arity => 0;
+
+            internal override bool CanDecode(int prefix)
+                => prefix == 0b11111111;
+
+            internal override Command Decode(int prefix, Func<int> nextByte)
+                => Commands.Halt();
+
+            internal override Command DecodeText(IReadOnlyList<string> args)
+                => Commands.Halt();
         }
     }
 }

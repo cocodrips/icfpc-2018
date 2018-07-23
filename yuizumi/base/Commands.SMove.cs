@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -47,6 +48,28 @@ namespace Yuizumi.Icfpc2018
             }
 
             public override string ToString() => $"SMove {mLld}";
+        }
+
+        private class SMoveDecoder : Decoder
+        {
+            internal override string Name => "SMove";
+
+            internal override int Arity => 1;
+
+            internal override bool CanDecode(int prefix)
+                => (prefix & 0b11001111) == 0b00000100;
+
+            internal override Command Decode(int prefix, Func<int> nextByte)
+            {
+                int suffix = nextByte();
+                int a = (prefix & 0b00110000) >> 4;
+                int i = (suffix & 0b00011111) >> 0;
+                Delta lld = DeltaDecoder.DecodeLld(a, i);
+                return Commands.SMove(lld);
+            }
+
+            internal override Command DecodeText(IReadOnlyList<string> args)
+                => Commands.SMove(Delta.Parse(args[0]));
         }
     }
 }

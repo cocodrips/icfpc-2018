@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -55,6 +56,28 @@ namespace Yuizumi.Icfpc2018
             }
 
             public override string ToString() => $"FusionS {mNd}";
+        }
+
+        private class FusionSDecoder : Decoder
+        {
+            internal override string Name => "FusionS";
+
+            internal override int Arity => 1;
+
+            internal override bool CanDecode(int prefix)
+            {
+                if (prefix == 0b11111110) return false;  // Wait
+                return (prefix & 0b00000111) == 0b00000110;
+            }
+
+            internal override Command Decode(int prefix, Func<int> nextByte)
+            {
+                Delta nd = DeltaDecoder.DecodeNd((prefix & 0b11111000) >> 3);
+                return Commands.FusionS(nd);
+            }
+
+            internal override Command DecodeText(IReadOnlyList<string> args)
+                => Commands.FusionS(Delta.Parse(args[0]));
         }
     }
 }
