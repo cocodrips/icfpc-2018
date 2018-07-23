@@ -129,11 +129,12 @@
                 {% endif %}
               </div>
               {% for ai in ai_names %}
-                <div class="siimple-table-cell
+                <a href='' class="siimple-table-cell
                             {% if scores[ai][prob] and scores[ai][prob]['energy'] == highest[prob] %}
                             siimple-highest-score
                             {% endif %}
                             ">
+                            <!-- <a href="/"> -->
                   {% if prob in scores[ai] %}
                     {% if scores[ai][prob]['energy'] == 0 %}
                       ERR
@@ -144,7 +145,8 @@
                       
                     {% endif %}
                   {% endif %}
-                </div>
+                  <!-- </a> -->
+                </a>
               {% endfor %}
             </div>
           {% endfor %}
