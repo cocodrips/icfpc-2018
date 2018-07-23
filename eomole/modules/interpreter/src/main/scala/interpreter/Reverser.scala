@@ -15,6 +15,8 @@ object Reverser {
     case Command.Void(nd) => Command.Fill(nd)
     case Command.GFill(nd, fd) => Command.GVoid(nd, fd)
     case Command.GVoid(nd, fd) => Command.GFill(nd, fd)
-    case c => c // TODO: FissionとFusionのreverseに対応する
+    // IDが面倒でサポートできない
+    case Command.FusionS(_) | Command.FusionP(_) | Command.Fission(_, _) => throw new UnsupportedOperationException
+    case c => c
   }
 }
