@@ -239,11 +239,14 @@ def add_data():
 @app.route("/update/<_id>", methods=['POST'])
 def update_score(_id):
     score = Score.query.filter_by(id=_id).first()
+    if not score:
+        return "Not fount score id {}".format(_id)
     data = request.json
     if data['energy']:
         score.energy = data['energy']
         score.commands = data['commands']
         score.spent_time = data['time']
+        score.message = ''
     else:
         score.energy = 0
         score.message = data['message']
@@ -336,7 +339,7 @@ GROUP BY (game_type, problem);
 
         zip_filename = '{}/submission.zip'.format(temp_dir)
         subprocess.call(
-            'zip -e --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(
+            'zip -e -r --password 9364648f7acd496a948fba7c76a10501 {} *.nbt'.format(
                 zip_filename), shell=True, cwd=temp_dir);
         return send_file(zip_filename, attachment_filename='{}.zip'.format(name),
                          as_attachment=True)
