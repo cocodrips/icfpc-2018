@@ -433,10 +433,115 @@ void one_step_up(){
   return;
 }
 
+void update_weight(int y){
+  //cout<<"     Update Weight"<<endl;
+  int total = 0;
+  int weigth[251] = {0};
+  for(int i=0;i<R;i++){
+    for(int j=0;j<R;j++){
+      if(Resolutions[i][y][j]){
+        total += 6;
+        weigth[i] += 6;
+      }
+    }
+  }
+
+  int point[50];
+
+  int di = total/Bnum;
+  int xx = 0;
+  for(int i=0;i<Bnum;i++){
+    point[i] = xx;
+    int tmp = 0;
+    while(tmp < di){
+      if(xx == R){
+        break;
+      }
+      tmp += weigth[xx++];
+    }
+  }
+
+  //cout<<"DEBUG";
+  //for(int i=0;i<Bnum;i++)cout<<point[i]<<" ";cout<<endl;
+
+  for(int i=0;i<Bnum-1;i++){
+    B[i].range.x = min(point[i], R-Bnum+i);
+    B[i].range.x = max(B[i].range.x, i);
+    B[i].range.z = min(point[i+1], R-Bnum+i+1);
+    B[i].range.z = max(B[i].range.z, i+1);
+  }
+  B[Bnum-1].range.x = min(point[Bnum-1], R-1);
+  B[Bnum-1].range.x = max(B[Bnum-1].range.x , Bnum-1);
+  B[Bnum-1].range.z = R;
+
+  /*for(int i=0;i<Bnum;i++){
+    cout<<i<<" DEBUG "<<B[i].range.x<<" "<<B[i].range.z<<endl;
+  }*/
+
+  return;
+}
+
+bool inRange(int i){
+  if(B[i].p.x < B[i].range.x) return false;
+  if(B[i].p.x >= B[i].range.z) return false;
+  return true;
+}
+
+bool inRange_all(){
+  for(int i=0;i<Bnum;i++){
+    if(inRange(i) == false) return false;
+  }
+  return true;
+}
+
+void move_acc(){
+  Vec next[50];
+  for(int i=0;i<Bnum;i++){
+    next[i] = B[i].p;
+    if(!inRange(i)){
+      int dx = (B[i].p.x < B[i].range.x) ? 1 : -1;
+      int dist = (B[i].p.x < B[i].range.x) ? abs(B[i].range.x - B[i].p.x) : abs(B[i].range.z - B[i].p.x)+1;
+      int ox = abs(B[i+dx].p.x - B[i].p.x)-1;
+      dist = min(ox,dist);
+      //cout<<"dist "<<dist<<" "<<i<<endl;
+      Vec target = {B[i].p.x + (dx*dist) ,B[i].p.y,B[i].p.z};
+      Vec step = next_one_step(B[i].p,target);
+      if(step.x == -30){
+        //printVec(B[i].p);
+        //printVec(B[i].range);
+        //printVec(target);
+        //printVec(step);
+        cout<<"Wait"<<endl;
+      } else {
+        cout<<"SMove "<<distance_string_vec(step)<<endl;
+        next[i].x += step.x;
+        next[i].y += step.y;
+        next[i].z += step.z;
+      }
+    } else {
+      cout<<"Wait"<<endl;
+    }
+  }
+  for(int i=0;i<Bnum;i++){
+    B[i].p = next[i];
+  }
+  return;
+}
+
+void move_area(){
+  int cnt=0;
+  while(1){
+    //cout<<"DEBUG "<<i<<endl;
+    if(inRange_all())break;
+  move_acc();
+  return;
+}
+
 void search(){
-  //for(int i=0;i<1;i++){
   for(int i=0;i<Rmax;i++){
+    update_weight(i);
     one_step_up();
+    move_area();
     sweep_one_plane(i);
   }
   return;

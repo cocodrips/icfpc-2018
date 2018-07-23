@@ -433,11 +433,146 @@ void one_step_up(){
   return;
 }
 
+void update_weight(int y){
+  //cout<<"     Update Weight"<<endl;
+  int total = 0;
+  int weigth[251] = {0};
+  for(int i=0;i<R;i++){
+    for(int j=0;j<R;j++){
+      if(Resolutions[i][y][j]){
+        total += 6;
+        weigth[i] += 6;
+      }
+    }
+  }
+
+  int point[50];
+
+  int di = total/Bnum;
+  int xx = 0;
+  for(int i=0;i<Bnum;i++){
+    point[i] = xx;
+    int tmp = 0;
+    while(tmp < di){
+      if(xx == R){
+        break;
+      }
+      tmp += weigth[xx++];
+    }
+  }
+
+  //cout<<"DEBUG";
+  //for(int i=0;i<Bnum;i++)cout<<point[i]<<" ";cout<<endl;
+
+  for(int i=0;i<Bnum-1;i++){
+    B[i].range.x = min(point[i], R-Bnum+i);
+    B[i].range.x = max(B[i].range.x, i);
+    B[i].range.z = min(point[i+1], R-Bnum+i+1);
+    B[i].range.z = max(B[i].range.z, i+1);
+  }
+  B[Bnum-1].range.x = min(point[Bnum-1], R-1);
+  B[Bnum-1].range.x = max(B[Bnum-1].range.x , Bnum-1);
+  B[Bnum-1].range.z = R;
+
+  /*for(int i=0;i<Bnum;i++){
+    cout<<i<<" DEBUG "<<B[i].range.x<<" "<<B[i].range.z<<endl;
+  }*/
+
+  return;
+}
+
+bool inRange(int i){
+  if(B[i].p.x < B[i].range.x) return false;
+  if(B[i].p.x >= B[i].range.z) return false;
+  return true;
+}
+
+bool inRange_all(){
+  for(int i=0;i<Bnum;i++){
+    if(inRange(i) == false) return false;
+  }
+  return true;
+}
+
+void move_acc(){
+  Vec target[51];
+  for(int i=0;i<Bnum;i++){
+    target[i] = B[i].p;
+    if(B[i].p.x < B[i].range.x){
+      target[i].x = B[i].range.x;
+      continue;
+    } else if (B[i].p.x >= B[i].range.z){
+      target[i].x = B[i].range.z-1;
+    }
+  }
+  while(1){
+    bool loop = false;
+    for(int i=0;i<Bnum;i++){
+      Vec step = next_one_step(B[i].p,target[i]);
+      if(step.x == -30){
+        cout<<"Wait"<<endl;
+      } else {
+        cout<<"SMove "<<distance_string_vec(step)<<endl;
+        B[i].p.x += step.x;
+        B[i].p.y += step.y;
+        B[i].p.z += step.z;
+        loop = true;
+      }
+    }
+    if(!loop) break;
+  }
+  return;
+}
+
+void move_yacc(){
+  int yacc[251] = {0};
+  Vec target[51];
+  for(int i=0;i<Bnum;i++){
+    target[i] = B[i].p;
+  }
+  for(int i=0;i<Bnum;i++){
+    while(yacc[target[i].z] == 1){
+      target[i].z += 11;
+      target[i].z %= R;
+    }
+    yacc[target[i].z] = 1;
+  }
+  while(1){
+    bool loop = false;
+    for(int i=0;i<Bnum;i++){
+      Vec step = next_one_step(B[i].p,target[i]);
+      if(step.x == -30){
+        cout<<"Wait"<<endl;
+      } else {
+        cout<<"SMove "<<distance_string_vec(step)<<endl;
+        B[i].p.x += step.x;
+        B[i].p.y += step.y;
+        B[i].p.z += step.z;
+        loop = true;
+      }
+    }
+    if(!loop) break;
+  }
+  return;
+}
+
+void move_area(){
+  move_yacc();
+  move_acc();
+  return;
+}
+
 void search(){
-  //for(int i=0;i<1;i++){
   for(int i=0;i<Rmax;i++){
+    cerr<<i<<endl;
+    update_weight(i);
+    cerr<<i<<endl;
     one_step_up();
+    cerr<<i<<endl;
+    move_area();
+    cerr<<i<<endl;
     sweep_one_plane(i);
+    cerr<<i<<endl;
   }
   return;
 }
