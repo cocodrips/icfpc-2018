@@ -106,7 +106,7 @@ def update_leader_board():
 
 @app.route("/")
 def _index():
-    return _scoreboard('LA')
+    return _scoreboard('FA')
 
 
 @app.route("/scoreboard/<_type>")
@@ -251,7 +251,19 @@ def get_data(sid):
 def simulate(_id):
     return render_template('exec-trace.html',
                            id=_id)
-    
+
+
+@app.route('/nbt/<_id>')
+def get_nbt(_id):
+    return app.send_static_file('result/{}.nbt'.format(_id))
+
+
+@app.route('/mdl/<_type>/<_id>')
+def get_mdl(_type, _id):
+    return app.send_static_file("data/problems/{}{:03d}_tgt.mdl".format(
+        _type, int(_id)
+    ))
+
 
 @app.route("/submission", methods=['GET'])
 def get_submission():
